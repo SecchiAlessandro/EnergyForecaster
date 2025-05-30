@@ -59,6 +59,10 @@ SCRIPTS = [
     {
         "script": "09_demand_supply_analysis.py",
         "description": "Comprehensive analysis of energy demand vs. renewable supply. Calculates coverage percentages and identifies potential surplus/deficit periods."
+    },
+    {
+        "script": "final_analysis.py",
+        "description": "Performing final analysis and generating comprehensive reports."
     }
 ]
 

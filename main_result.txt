@@ -1,0 +1,1863 @@
+
+================================================================================
+ENERGY MARKET FORECASTING PIPELINE
+Running all scripts in sequence
+================================================================================
+
+
+Ensuring directory structure is set up correctly...
+
+================================================================================
+Running: 00_process_price_data.py
+Description: Processing raw energy price data for Italy. This script cleans the data, handles missing values, identifies outliers, and adds time-based features.
+
+================================================================================
+
+Starting price data processing...
+Loading data from /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/raw/energy_price/Italy/PUN.csv...
+Successfully loaded data with 3653 rows and 2 columns.
+Cleaning and preprocessing data...
+Found 0 missing values.
+Found 364 outliers using IQR method.
+Sample weights assigned: {1.0: 3289, 0.1: 364}
+Creating final dataset...
+
+Basic Statistics:
+----------------------------------------
+count    3653.000000
+mean       96.647910
+std        90.098071
+min        10.659308
+25%        47.397251
+50%        60.367120
+75%       112.136641
+max       740.091314
+Name: price_eur_mwh, dtype: float64
+
+Yearly Averages:
+year
+2015     52.305648
+2016     42.775691
+2017     53.949572
+2018     61.309365
+2019     52.325940
+2020     38.916242
+2021    125.448122
+2022    303.965806
+2023    127.235484
+2024    108.520469
+Name: price_eur_mwh, dtype: float64
+
+Monthly Averages (across all years):
+month
+1      89.279140
+2      81.506187
+3      86.493757
+4      78.701583
+5      75.162610
+6      83.275874
+7     108.264926
+8     119.901802
+9     113.850344
+10    100.604919
+11    104.575191
+12    116.640159
+Name: price_eur_mwh, dtype: float64
+
+Weekday Average: 100.47 €/MWh
+Weekend Average: 87.10 €/MWh
+Generating diagnostic plots...
+Plots saved to /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/outputs/images
+Processed data saved to /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/processed/Italy/PUN_p.csv
+Final data saved to /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/final/Italy/energy_price2015_2024.csv
+Price data processing complete!
+
+
+Script completed successfully with return code: 0
+
+================================================================================
+Running: 01_eda_price.py
+Description: Exploratory data analysis of energy price data. Decomposes time series, tests for stationarity, and analyzes autocorrelation patterns.
+
+================================================================================
+
+Starting exploratory data analysis for energy price data...
+Loading processed price data...
+Attempting to load data from: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/final/Italy/energy_price2015_2024.csv
+Successfully loaded data with 3653 rows and 9 columns.
+
+Data preview:
+        Date  price_eur_mwh  is_outlier  ...  day  day_of_week  is_weekend
+0 2015-01-01      45.472115       False  ...    1            3       False
+1 2015-01-02      56.988056       False  ...    2            4       False
+2 2015-01-03      50.532976       False  ...    3            5        True
+3 2015-01-04      45.106388       False  ...    4            6        True
+4 2015-01-05      53.368481       False  ...    5            0       False
+
+[5 rows x 9 columns]
+Engineering time-based features...
+Sample weight distribution: {1.0: 3289, 0.1: 364}
+Outlier distribution: {False: 3289, True: 364}
+
+Engineered features preview:
+        Date  price_eur_mwh  ...  price_rolling_7d_mean  price_rolling_30d_mean
+0 2015-01-01      45.472115  ...                    NaN                     NaN
+1 2015-01-02      56.988056  ...                    NaN                     NaN
+2 2015-01-03      50.532976  ...                    NaN                     NaN
+3 2015-01-04      45.106388  ...                    NaN                     NaN
+4 2015-01-05      53.368481  ...                    NaN                     NaN
+
+[5 rows x 18 columns]
+Decomposing time series...
+Testing for stationarity...
+
+Augmented Dickey-Fuller Test Results:
+ADF Test Statistic        -2.902697
+p-value                    0.045035
+# Lags Used               28.000000
+# Observations          3624.000000
+Critical Value (1%)       -3.432156
+Critical Value (5%)       -2.862338
+Critical Value (10%)      -2.567195
+dtype: float64
+Interpretation: Stationary
+
+KPSS Test Results:
+KPSS Test Statistic       3.241064
+p-value                   0.010000
+# Lags Used              38.000000
+Critical Value (10%)      0.347000
+Critical Value (5%)       0.463000
+Critical Value (2.5%)     0.574000
+Critical Value (1%)       0.739000
+dtype: float64
+Interpretation: Non-stationary
+Performing autocorrelation analysis...
+Generating visualizations...
+Preparing train/test split based on date...
+Training data: 3043 rows (2015-01-31 00:00:00 to 2023-05-31 00:00:00)
+Testing data: 580 rows (2023-06-01 00:00:00 to 2024-12-31 00:00:00)
+
+Price statistics:
+Training mean price: 94.26 €/MWh
+Testing mean price: 111.53 €/MWh
+
+EDA complete! All visualizations saved to: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/outputs/images
+Train/test data saved to: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/final/Italy
+
+
+Script completed successfully with return code: 0
+
+================================================================================
+Running: 02_train_price_model.py
+Description: Training forecasting models for energy prices. Builds, trains, and evaluates models using historical price data.
+
+================================================================================
+
+Starting price forecasting model training...
+Loading processed price data...
+Successfully loaded training data: 3043 rows
+Successfully loaded testing data: 580 rows
+Preparing features and target variables...
+Using sample weights for training. Weight distribution: {1.0: 2679, 0.1: 364}
+Features used: ['day_of_week', 'month', 'quarter', 'year', 'day_of_year', 'is_weekend', 'price_lag1', 'price_lag7', 'price_lag30', 'price_rolling_7d_mean', 'price_rolling_30d_mean']
+X_train shape: (3043, 11), y_train shape: (3043,)
+X_test shape: (580, 11), y_test shape: (580,)
+Training sample weights shape: (3043,)
+Testing sample weights shape: (580,)
+Hyperparameters loaded from: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/models/price_model_hyperparams.joblib
+Using saved hyperparameters. To re-optimize, use --reoptimize flag or delete:
+  /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/models/price_model_hyperparams.joblib
+Current hyperparameters:
+    n_estimators: 800
+    learning_rate: 0.0574473229799191
+    max_depth: 8
+    subsample: 0.9406777688814133
+    colsample_bytree: 0.9985643674591873
+    reg_alpha: 0.39207765413251605
+    reg_lambda: 0.5068576054210134
+    min_child_weight: 6
+    gamma: 0.359925026461718
+    objective: reg:squarederror
+    eval_metric: rmse
+    random_state: 42
+Training XGBoost model with cross-validation and sample weights...
+Performing time series cross-validation with sample weights...
+Fold RMSE: 6.45, R²: 0.6833 (Train RMSE: 0.59, R²: 0.9973)
+Fold RMSE: 6.35, R²: 0.6775 (Train RMSE: 0.57, R²: 0.9975)
+Fold RMSE: 5.66, R²: 0.7756 (Train RMSE: 0.60, R²: 0.9978)
+Fold RMSE: 76.50, R²: -0.0197 (Train RMSE: 0.62, R²: 0.9979)
+Fold RMSE: 97.26, R²: 0.4294 (Train RMSE: 4.27, R²: 0.9899)
+Cross-validation train-test plot saved to: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/outputs/images/price_cv_train_test.png
+Cross-validation average RMSE: 38.44 ±40.09
+Cross-validation average R²: 0.5092 ±0.2883
+Training final model on full training data with sample weights...
+Test R² score: 0.5642
+Model saved to /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/models/energy_price_xgb_v1.joblib
+Evaluating model performance...
+RMSE: 13.21 €/MWh
+MAE: 9.87 €/MWh
+R²: 0.5642
+Generating future predictions for 2025-2029...
+Future predictions saved to /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/final/Italy/energy_price2025_2029.csv (only Date and price_eur_mwh columns)
+Successfully loaded training data from /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/final/Italy/price_train_data.csv for the plot.
+Comprehensive plot saved to /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/outputs/images/price_full_history_and_predictions.png
+Analyzing sample weights and outlier distribution...
+Total training samples: 3043
+Normal samples (weight=1.0): 2679 (88.0%)
+Outlier samples (weight=0.1): 364 (12.0%)
+
+Price statistics:
+Normal samples - Mean: 63.59, Std: 36.59
+Outlier samples - Mean: 320.00, Std: 111.97
+
+Model training and prediction complete!
+Model performance: RMSE=13.21, MAE=9.87, R²=0.5642
+Model saved to: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/models/energy_price_xgb_v1.joblib
+Hyperparameters saved to: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/models/price_model_hyperparams.joblib
+Predictions saved to: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/final/Italy/energy_price2025_2029.csv
+Visualizations saved to: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/outputs/images
+
+For reproducible results:
+- The same hyperparameters will be used in future runs
+- To re-optimize hyperparameters, use: python 02_train_price_model.py --reoptimize
+- All random seeds are fixed for consistent predictions
+
+
+Script completed successfully with return code: 0
+
+================================================================================
+Running: 03_process_demand_data.py
+Description: Processing raw energy demand data for Italy. Cleans the data, handles missing values, and prepares it for analysis.
+
+================================================================================
+
+Starting demand data processing...
+Processing /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/raw/energy_demand/Italy/consumption2015.csv...
+Saved processed file: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/processed/Italy/consumption2015_p.csv
+Processing /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/raw/energy_demand/Italy/consumption2016.csv...
+Saved processed file: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/processed/Italy/consumption2016_p.csv
+Processing /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/raw/energy_demand/Italy/consumption2017.csv...
+Saved processed file: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/processed/Italy/consumption2017_p.csv
+Processing /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/raw/energy_demand/Italy/consumption2018.csv...
+Saved processed file: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/processed/Italy/consumption2018_p.csv
+Processing /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/raw/energy_demand/Italy/consumption2019.csv...
+Saved processed file: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/processed/Italy/consumption2019_p.csv
+Processing /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/raw/energy_demand/Italy/consumption2020.csv...
+Saved processed file: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/processed/Italy/consumption2020_p.csv
+Processing /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/raw/energy_demand/Italy/consumption2021.csv...
+Saved processed file: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/processed/Italy/consumption2021_p.csv
+Processing /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/raw/energy_demand/Italy/consumption2022.csv...
+Saved processed file: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/processed/Italy/consumption2022_p.csv
+Processing /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/raw/energy_demand/Italy/consumption2023.csv...
+Saved processed file: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/processed/Italy/consumption2023_p.csv
+Processing /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/raw/energy_demand/Italy/consumption2024.csv...
+Saved processed file: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/processed/Italy/consumption2024_p.csv
+Saved concatenated demand data (unmerged) to: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/final/Italy/energy_demand2015_2024.csv
+Saved merged demand-price data to: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/final/Italy/energy_demand2015_2024_merged.csv (Columns: ['date', 'demand_mw', 'is_outlier', 'year', 'month', 'day', 'price_eur_mwh'])
+Generating statistics and plots...
+count     3653.000000
+mean     32606.911462
+std       4781.024339
+min      18905.625000
+25%      29000.500000
+50%      33394.166667
+75%      36052.583333
+max      46431.541667
+Name: demand_mw, dtype: float64
+Yearly averages:
+year
+2015    32935.826712
+2016    32247.537454
+2017    33270.404452
+2018    33933.323801
+2019    33578.992637
+2020    31101.665528
+2021    33024.416039
+2022    32677.607249
+2023    31532.249600
+2024    31774.480325
+Name: demand_mw, dtype: float64
+Monthly averages:
+month
+1     33574.179032
+2     34215.085100
+3     32099.596640
+4     29350.347361
+5     30079.839919
+6     33222.164028
+7     37271.347177
+8     31954.574597
+9     33192.436389
+10    31635.464785
+11    32625.194167
+12    32137.049150
+Name: demand_mw, dtype: float64
+Plots saved to /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/outputs/images
+Demand data processing complete!
+
+--- Script STDERR ---
+/Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/scripts/03_process_demand_data.py:61: FutureWarning: Series.fillna with 'method' is deprecated and will raise in a future version. Use obj.ffill() or obj.bfill() instead.
+  df['demand_mw'] = df['demand_mw'].fillna(method='bfill').fillna(method='ffill')
+/Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/scripts/03_process_demand_data.py:61: FutureWarning: Series.fillna with 'method' is deprecated and will raise in a future version. Use obj.ffill() or obj.bfill() instead.
+  df['demand_mw'] = df['demand_mw'].fillna(method='bfill').fillna(method='ffill')
+/Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/scripts/03_process_demand_data.py:61: FutureWarning: Series.fillna with 'method' is deprecated and will raise in a future version. Use obj.ffill() or obj.bfill() instead.
+  df['demand_mw'] = df['demand_mw'].fillna(method='bfill').fillna(method='ffill')
+/Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/scripts/03_process_demand_data.py:61: FutureWarning: Series.fillna with 'method' is deprecated and will raise in a future version. Use obj.ffill() or obj.bfill() instead.
+  df['demand_mw'] = df['demand_mw'].fillna(method='bfill').fillna(method='ffill')
+/Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/scripts/03_process_demand_data.py:61: FutureWarning: Series.fillna with 'method' is deprecated and will raise in a future version. Use obj.ffill() or obj.bfill() instead.
+  df['demand_mw'] = df['demand_mw'].fillna(method='bfill').fillna(method='ffill')
+/Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/scripts/03_process_demand_data.py:61: FutureWarning: Series.fillna with 'method' is deprecated and will raise in a future version. Use obj.ffill() or obj.bfill() instead.
+  df['demand_mw'] = df['demand_mw'].fillna(method='bfill').fillna(method='ffill')
+/Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/scripts/03_process_demand_data.py:61: FutureWarning: Series.fillna with 'method' is deprecated and will raise in a future version. Use obj.ffill() or obj.bfill() instead.
+  df['demand_mw'] = df['demand_mw'].fillna(method='bfill').fillna(method='ffill')
+/Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/scripts/03_process_demand_data.py:61: FutureWarning: Series.fillna with 'method' is deprecated and will raise in a future version. Use obj.ffill() or obj.bfill() instead.
+  df['demand_mw'] = df['demand_mw'].fillna(method='bfill').fillna(method='ffill')
+/Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/scripts/03_process_demand_data.py:61: FutureWarning: Series.fillna with 'method' is deprecated and will raise in a future version. Use obj.ffill() or obj.bfill() instead.
+  df['demand_mw'] = df['demand_mw'].fillna(method='bfill').fillna(method='ffill')
+/Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/scripts/03_process_demand_data.py:61: FutureWarning: Series.fillna with 'method' is deprecated and will raise in a future version. Use obj.ffill() or obj.bfill() instead.
+  df['demand_mw'] = df['demand_mw'].fillna(method='bfill').fillna(method='ffill')
+
+---------------------
+
+Script completed successfully with return code: 0
+
+================================================================================
+Running: 04_eda_demand.py
+Description: Exploratory data analysis of energy demand data. Analyzes patterns, seasonal trends, and correlations with external factors.
+
+================================================================================
+
+Starting Exploratory Data Analysis for Energy Demand...
+Loading demand data...
+Data loaded: 3653 rows, 6 columns
+
+Basic Statistics:
+             Demand         year        month          day  price_eur_mwh
+count   3653.000000  3653.000000  3653.000000  3653.000000    3653.000000
+mean   32606.911462  2019.500411     6.522310    15.731454      96.647910
+std     4781.024339     2.873056     3.449345     8.802064      90.098071
+min    18905.625000  2015.000000     1.000000     1.000000      10.659308
+25%    29000.500000  2017.000000     4.000000     8.000000      47.397251
+50%    33394.166667  2020.000000     7.000000    16.000000      60.367120
+75%    36052.583333  2022.000000    10.000000    23.000000     112.136641
+max    46431.541667  2024.000000    12.000000    31.000000     740.091314
+
+Missing Values:
+No missing values
+
+First few rows:
+                  Demand  is_outlier  year  month  day  price_eur_mwh
+date                                                                 
+2015-01-01  24518.208333       False  2015      1    1      45.472115
+2015-01-02  28477.583333       False  2015      1    2      56.988056
+2015-01-03  27077.208333       False  2015      1    3      50.532976
+2015-01-04  24970.416667       False  2015      1    4      45.106388
+2015-01-05  28787.000000       False  2015      1    5      53.368481
+
+Performing time series analysis...
+Performing seasonal decomposition...
+
+Stationarity Tests:
+ADF Test: p-value = 0.0000
+ADF Critical Values: {'1%': -3.43215622115055, '5%': -2.862338087688428, '10%': -2.5671948344809046}
+KPSS Test: p-value = 0.0555
+KPSS Critical Values: {'10%': 0.347, '5%': 0.463, '2.5%': 0.574, '1%': 0.739}
+
+Performing correlation analysis...
+
+Performing feature engineering...
+
+Preparing train/test split...
+Training data: 2557 rows (2016-01-01 00:00:00 to 2022-12-31 00:00:00)
+Testing data: 731 rows (2023-01-01 00:00:00 to 2024-12-31 00:00:00)
+
+EDA completed. Visualizations saved to: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/outputs/images
+Train/test data saved to: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/final/Italy
+
+
+Script completed successfully with return code: 0
+
+================================================================================
+Running: 05_train_demand_model.py
+Description: Training forecasting models for energy demand. Develops models to predict future energy consumption.
+
+================================================================================
+
+Starting Energy Demand Forecasting Model Training...
+Loading processed demand data...
+Successfully loaded training data: 2557 rows
+Successfully loaded testing data: 731 rows
+Preparing features and target variables...
+Warning: Feature 'is_weekend' not found in training data. Will be removed from feature list.
+Attempting to use features: ['dayofweek', 'month', 'quarter', 'year', 'dayofyear', 'demand_lag1', 'demand_lag7', 'demand_lag30', 'demand_rolling_7d_mean', 'demand_rolling_30d_mean', 'demand_rolling_7d_std', 'demand_rolling_30d_std', 'price_eur_mwh']
+Features used: ['dayofweek', 'month', 'quarter', 'year', 'dayofyear', 'demand_lag1', 'demand_lag7', 'demand_lag30', 'demand_rolling_7d_mean', 'demand_rolling_30d_mean', 'demand_rolling_7d_std', 'demand_rolling_30d_std', 'price_eur_mwh']
+X_train shape: (2557, 13), y_train shape: (2557,)
+X_test shape: (731, 13), y_test shape: (731,)
+Hyperparameters loaded from: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/models/demand_model_hyperparams.joblib
+Using saved hyperparameters. To re-optimize, use --reoptimize flag or delete:
+  /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/models/demand_model_hyperparams.joblib
+Current hyperparameters:
+    n_estimators: 600
+    learning_rate: 0.01339031716419964
+    max_depth: 7
+    subsample: 0.7052274808536108
+    colsample_bytree: 0.9405588026941729
+    reg_alpha: 4.712573562349711
+    reg_lambda: 0.017202706126518502
+    min_child_weight: 9
+    gamma: 0.46163641417121104
+    objective: reg:squarederror
+    eval_metric: rmse
+    random_state: 42
+    early_stopping_rounds: 50
+Training XGBoost model with cross-validation...
+Performing time series cross-validation...
+Fold RMSE: 1700.81, R²: 0.8726 (Train RMSE: 638.10, R²: 0.9807)
+Fold RMSE: 1310.13, R²: 0.9239 (Train RMSE: 562.01, R²: 0.9856)
+Fold RMSE: 1473.56, R²: 0.9260 (Train RMSE: 742.01, R²: 0.9754)
+Fold RMSE: 1057.33, R²: 0.9414 (Train RMSE: 592.69, R²: 0.9856)
+Fold RMSE: 1292.80, R²: 0.9232 (Train RMSE: 540.61, R²: 0.9875)
+Cross-validation train-test plot saved to: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/outputs/images/demand_cv_train_test.png
+Cross-validation average RMSE: 1366.93 ±213.27
+Cross-validation average R²: 0.9174 ±0.0234
+Training final model on full training data...
+[0]	validation_0-rmse:4640.77437
+[1]	validation_0-rmse:4582.82790
+[2]	validation_0-rmse:4526.15451
+[3]	validation_0-rmse:4477.61449
+[4]	validation_0-rmse:4422.65644
+[5]	validation_0-rmse:4368.83440
+[6]	validation_0-rmse:4316.19952
+[7]	validation_0-rmse:4264.74747
+[8]	validation_0-rmse:4213.24919
+[9]	validation_0-rmse:4161.88615
+[10]	validation_0-rmse:4111.93665
+[11]	validation_0-rmse:4062.10773
+[12]	validation_0-rmse:4012.16034
+[13]	validation_0-rmse:3970.95604
+[14]	validation_0-rmse:3923.59389
+[15]	validation_0-rmse:3877.16583
+[16]	validation_0-rmse:3830.15088
+[17]	validation_0-rmse:3785.52592
+[18]	validation_0-rmse:3741.09038
+[19]	validation_0-rmse:3697.22386
+[20]	validation_0-rmse:3654.99546
+[21]	validation_0-rmse:3615.03270
+[22]	validation_0-rmse:3574.92327
+[23]	validation_0-rmse:3535.32992
+[24]	validation_0-rmse:3495.97441
+[25]	validation_0-rmse:3455.21752
+[26]	validation_0-rmse:3422.40364
+[27]	validation_0-rmse:3383.33274
+[28]	validation_0-rmse:3346.77322
+[29]	validation_0-rmse:3314.33861
+[30]	validation_0-rmse:3276.73847
+[31]	validation_0-rmse:3247.61812
+[32]	validation_0-rmse:3211.34836
+[33]	validation_0-rmse:3174.77472
+[34]	validation_0-rmse:3141.13902
+[35]	validation_0-rmse:3106.35482
+[36]	validation_0-rmse:3071.51125
+[37]	validation_0-rmse:3038.46122
+[38]	validation_0-rmse:3007.87972
+[39]	validation_0-rmse:2975.95741
+[40]	validation_0-rmse:2944.55596
+[41]	validation_0-rmse:2913.59476
+[42]	validation_0-rmse:2882.01795
+[43]	validation_0-rmse:2852.45734
+[44]	validation_0-rmse:2821.95075
+[45]	validation_0-rmse:2794.48588
+[46]	validation_0-rmse:2769.31892
+[47]	validation_0-rmse:2741.00108
+[48]	validation_0-rmse:2717.65008
+[49]	validation_0-rmse:2689.75095
+[50]	validation_0-rmse:2663.00679
+[51]	validation_0-rmse:2636.40929
+[52]	validation_0-rmse:2610.03647
+[53]	validation_0-rmse:2584.92327
+[54]	validation_0-rmse:2558.85428
+[55]	validation_0-rmse:2534.18656
+[56]	validation_0-rmse:2509.35774
+[57]	validation_0-rmse:2484.92853
+[58]	validation_0-rmse:2461.68159
+[59]	validation_0-rmse:2436.92768
+[60]	validation_0-rmse:2412.86026
+[61]	validation_0-rmse:2389.04515
+[62]	validation_0-rmse:2366.30162
+[63]	validation_0-rmse:2344.70686
+[64]	validation_0-rmse:2322.85819
+[65]	validation_0-rmse:2300.90707
+[66]	validation_0-rmse:2280.68985
+[67]	validation_0-rmse:2259.89378
+[68]	validation_0-rmse:2239.93644
+[69]	validation_0-rmse:2220.06936
+[70]	validation_0-rmse:2202.52547
+[71]	validation_0-rmse:2185.09234
+[72]	validation_0-rmse:2168.72618
+[73]	validation_0-rmse:2149.75504
+[74]	validation_0-rmse:2134.08448
+[75]	validation_0-rmse:2115.18576
+[76]	validation_0-rmse:2098.41788
+[77]	validation_0-rmse:2080.00737
+[78]	validation_0-rmse:2062.44144
+[79]	validation_0-rmse:2045.94333
+[80]	validation_0-rmse:2028.27631
+[81]	validation_0-rmse:2012.15654
+[82]	validation_0-rmse:1995.77906
+[83]	validation_0-rmse:1980.18400
+[84]	validation_0-rmse:1963.96110
+[85]	validation_0-rmse:1948.85744
+[86]	validation_0-rmse:1933.22831
+[87]	validation_0-rmse:1919.18078
+[88]	validation_0-rmse:1906.14137
+[89]	validation_0-rmse:1892.90054
+[90]	validation_0-rmse:1878.76892
+[91]	validation_0-rmse:1865.62730
+[92]	validation_0-rmse:1852.85539
+[93]	validation_0-rmse:1839.56568
+[94]	validation_0-rmse:1828.66402
+[95]	validation_0-rmse:1817.51984
+[96]	validation_0-rmse:1808.61127
+[97]	validation_0-rmse:1796.44945
+[98]	validation_0-rmse:1785.10406
+[99]	validation_0-rmse:1772.98016
+[100]	validation_0-rmse:1761.40659
+[101]	validation_0-rmse:1749.99657
+[102]	validation_0-rmse:1738.77606
+[103]	validation_0-rmse:1727.43005
+[104]	validation_0-rmse:1717.37144
+[105]	validation_0-rmse:1707.97607
+[106]	validation_0-rmse:1697.85949
+[107]	validation_0-rmse:1687.83292
+[108]	validation_0-rmse:1679.59484
+[109]	validation_0-rmse:1669.72730
+[110]	validation_0-rmse:1660.10297
+[111]	validation_0-rmse:1650.82652
+[112]	validation_0-rmse:1641.39894
+[113]	validation_0-rmse:1632.23177
+[114]	validation_0-rmse:1622.81834
+[115]	validation_0-rmse:1613.69669
+[116]	validation_0-rmse:1605.36252
+[117]	validation_0-rmse:1597.31157
+[118]	validation_0-rmse:1589.35532
+[119]	validation_0-rmse:1582.39794
+[120]	validation_0-rmse:1573.45765
+[121]	validation_0-rmse:1566.20476
+[122]	validation_0-rmse:1557.34848
+[123]	validation_0-rmse:1549.48552
+[124]	validation_0-rmse:1541.03455
+[125]	validation_0-rmse:1533.90315
+[126]	validation_0-rmse:1526.75369
+[127]	validation_0-rmse:1519.47280
+[128]	validation_0-rmse:1512.99730
+[129]	validation_0-rmse:1505.63695
+[130]	validation_0-rmse:1498.28258
+[131]	validation_0-rmse:1491.82342
+[132]	validation_0-rmse:1484.92622
+[133]	validation_0-rmse:1479.01837
+[134]	validation_0-rmse:1472.46574
+[135]	validation_0-rmse:1465.23884
+[136]	validation_0-rmse:1459.14024
+[137]	validation_0-rmse:1453.48978
+[138]	validation_0-rmse:1448.31735
+[139]	validation_0-rmse:1442.09884
+[140]	validation_0-rmse:1437.19917
+[141]	validation_0-rmse:1432.18415
+[142]	validation_0-rmse:1427.66808
+[143]	validation_0-rmse:1422.79772
+[144]	validation_0-rmse:1417.75200
+[145]	validation_0-rmse:1412.62960
+[146]	validation_0-rmse:1407.56087
+[147]	validation_0-rmse:1401.71292
+[148]	validation_0-rmse:1397.71627
+[149]	validation_0-rmse:1392.00747
+[150]	validation_0-rmse:1387.18238
+[151]	validation_0-rmse:1383.23082
+[152]	validation_0-rmse:1379.38246
+[153]	validation_0-rmse:1374.52239
+[154]	validation_0-rmse:1369.76398
+[155]	validation_0-rmse:1366.28334
+[156]	validation_0-rmse:1361.80757
+[157]	validation_0-rmse:1357.77782
+[158]	validation_0-rmse:1353.05569
+[159]	validation_0-rmse:1349.42773
+[160]	validation_0-rmse:1345.52512
+[161]	validation_0-rmse:1341.85910
+[162]	validation_0-rmse:1338.35889
+[163]	validation_0-rmse:1334.90249
+[164]	validation_0-rmse:1331.39886
+[165]	validation_0-rmse:1328.03166
+[166]	validation_0-rmse:1324.56372
+[167]	validation_0-rmse:1320.57214
+[168]	validation_0-rmse:1318.14669
+[169]	validation_0-rmse:1314.98590
+[170]	validation_0-rmse:1311.98387
+[171]	validation_0-rmse:1309.04685
+[172]	validation_0-rmse:1306.64627
+[173]	validation_0-rmse:1303.26666
+[174]	validation_0-rmse:1300.53665
+[175]	validation_0-rmse:1297.80505
+[176]	validation_0-rmse:1295.16632
+[177]	validation_0-rmse:1292.24174
+[178]	validation_0-rmse:1289.56793
+[179]	validation_0-rmse:1286.55238
+[180]	validation_0-rmse:1284.13065
+[181]	validation_0-rmse:1280.79695
+[182]	validation_0-rmse:1278.62886
+[183]	validation_0-rmse:1275.70488
+[184]	validation_0-rmse:1273.88261
+[185]	validation_0-rmse:1271.32971
+[186]	validation_0-rmse:1269.42250
+[187]	validation_0-rmse:1267.49852
+[188]	validation_0-rmse:1264.42103
+[189]	validation_0-rmse:1261.98408
+[190]	validation_0-rmse:1259.78388
+[191]	validation_0-rmse:1257.74084
+[192]	validation_0-rmse:1255.58246
+[193]	validation_0-rmse:1253.82908
+[194]	validation_0-rmse:1252.14072
+[195]	validation_0-rmse:1250.20645
+[196]	validation_0-rmse:1248.52406
+[197]	validation_0-rmse:1246.86994
+[198]	validation_0-rmse:1245.27336
+[199]	validation_0-rmse:1243.92012
+[200]	validation_0-rmse:1242.11311
+[201]	validation_0-rmse:1240.90598
+[202]	validation_0-rmse:1239.61461
+[203]	validation_0-rmse:1238.26444
+[204]	validation_0-rmse:1236.86912
+[205]	validation_0-rmse:1235.15635
+[206]	validation_0-rmse:1233.45455
+[207]	validation_0-rmse:1231.63481
+[208]	validation_0-rmse:1229.52348
+[209]	validation_0-rmse:1228.17682
+[210]	validation_0-rmse:1227.07513
+[211]	validation_0-rmse:1226.21387
+[212]	validation_0-rmse:1225.02774
+[213]	validation_0-rmse:1223.39573
+[214]	validation_0-rmse:1222.22183
+[215]	validation_0-rmse:1220.74769
+[216]	validation_0-rmse:1219.67993
+[217]	validation_0-rmse:1217.95347
+[218]	validation_0-rmse:1216.31528
+[219]	validation_0-rmse:1214.51108
+[220]	validation_0-rmse:1213.24910
+[221]	validation_0-rmse:1211.98684
+[222]	validation_0-rmse:1210.54890
+[223]	validation_0-rmse:1209.30493
+[224]	validation_0-rmse:1208.12923
+[225]	validation_0-rmse:1207.08119
+[226]	validation_0-rmse:1205.84510
+[227]	validation_0-rmse:1204.90883
+[228]	validation_0-rmse:1204.09036
+[229]	validation_0-rmse:1203.07397
+[230]	validation_0-rmse:1202.40582
+[231]	validation_0-rmse:1201.39248
+[232]	validation_0-rmse:1200.24267
+[233]	validation_0-rmse:1198.82122
+[234]	validation_0-rmse:1198.08872
+[235]	validation_0-rmse:1197.10218
+[236]	validation_0-rmse:1196.37997
+[237]	validation_0-rmse:1195.61326
+[238]	validation_0-rmse:1194.64442
+[239]	validation_0-rmse:1193.48059
+[240]	validation_0-rmse:1192.47379
+[241]	validation_0-rmse:1191.67966
+[242]	validation_0-rmse:1190.90131
+[243]	validation_0-rmse:1190.06308
+[244]	validation_0-rmse:1189.30100
+[245]	validation_0-rmse:1188.43320
+[246]	validation_0-rmse:1188.09893
+[247]	validation_0-rmse:1187.63208
+[248]	validation_0-rmse:1186.59437
+[249]	validation_0-rmse:1185.87594
+[250]	validation_0-rmse:1185.49105
+[251]	validation_0-rmse:1185.04638
+[252]	validation_0-rmse:1183.78485
+[253]	validation_0-rmse:1183.28767
+[254]	validation_0-rmse:1182.59059
+[255]	validation_0-rmse:1182.14634
+[256]	validation_0-rmse:1181.43828
+[257]	validation_0-rmse:1180.72321
+[258]	validation_0-rmse:1180.13338
+[259]	validation_0-rmse:1179.34345
+[260]	validation_0-rmse:1178.69941
+[261]	validation_0-rmse:1178.15437
+[262]	validation_0-rmse:1177.42366
+[263]	validation_0-rmse:1176.35042
+[264]	validation_0-rmse:1176.63486
+[265]	validation_0-rmse:1175.42425
+[266]	validation_0-rmse:1174.99875
+[267]	validation_0-rmse:1174.65238
+[268]	validation_0-rmse:1174.37060
+[269]	validation_0-rmse:1173.86895
+[270]	validation_0-rmse:1173.59795
+[271]	validation_0-rmse:1172.56590
+[272]	validation_0-rmse:1172.03174
+[273]	validation_0-rmse:1171.49222
+[274]	validation_0-rmse:1170.80523
+[275]	validation_0-rmse:1170.25878
+[276]	validation_0-rmse:1169.74733
+[277]	validation_0-rmse:1168.93664
+[278]	validation_0-rmse:1168.31755
+[279]	validation_0-rmse:1167.44891
+[280]	validation_0-rmse:1166.66258
+[281]	validation_0-rmse:1166.45856
+[282]	validation_0-rmse:1165.64892
+[283]	validation_0-rmse:1164.35253
+[284]	validation_0-rmse:1163.82840
+[285]	validation_0-rmse:1163.54489
+[286]	validation_0-rmse:1162.72601
+[287]	validation_0-rmse:1162.10605
+[288]	validation_0-rmse:1161.83751
+[289]	validation_0-rmse:1161.21061
+[290]	validation_0-rmse:1160.73583
+[291]	validation_0-rmse:1160.76181
+[292]	validation_0-rmse:1160.18210
+[293]	validation_0-rmse:1159.68947
+[294]	validation_0-rmse:1159.14528
+[295]	validation_0-rmse:1158.30206
+[296]	validation_0-rmse:1158.02205
+[297]	validation_0-rmse:1157.47447
+[298]	validation_0-rmse:1157.44465
+[299]	validation_0-rmse:1156.72369
+[300]	validation_0-rmse:1156.37462
+[301]	validation_0-rmse:1156.46763
+[302]	validation_0-rmse:1156.11972
+[303]	validation_0-rmse:1155.80178
+[304]	validation_0-rmse:1155.56786
+[305]	validation_0-rmse:1155.26089
+[306]	validation_0-rmse:1154.96376
+[307]	validation_0-rmse:1154.67261
+[308]	validation_0-rmse:1154.63560
+[309]	validation_0-rmse:1155.03396
+[310]	validation_0-rmse:1154.76847
+[311]	validation_0-rmse:1154.63162
+[312]	validation_0-rmse:1154.11044
+[313]	validation_0-rmse:1153.62019
+[314]	validation_0-rmse:1153.59696
+[315]	validation_0-rmse:1153.18401
+[316]	validation_0-rmse:1152.62536
+[317]	validation_0-rmse:1152.66854
+[318]	validation_0-rmse:1152.73227
+[319]	validation_0-rmse:1152.43998
+[320]	validation_0-rmse:1151.82687
+[321]	validation_0-rmse:1151.16821
+[322]	validation_0-rmse:1150.95110
+[323]	validation_0-rmse:1150.66050
+[324]	validation_0-rmse:1150.94542
+[325]	validation_0-rmse:1150.22163
+[326]	validation_0-rmse:1149.59774
+[327]	validation_0-rmse:1148.95789
+[328]	validation_0-rmse:1148.88952
+[329]	validation_0-rmse:1148.44951
+[330]	validation_0-rmse:1148.01304
+[331]	validation_0-rmse:1147.86006
+[332]	validation_0-rmse:1147.49779
+[333]	validation_0-rmse:1147.29826
+[334]	validation_0-rmse:1146.90774
+[335]	validation_0-rmse:1146.48033
+[336]	validation_0-rmse:1146.38084
+[337]	validation_0-rmse:1146.36789
+[338]	validation_0-rmse:1146.11578
+[339]	validation_0-rmse:1145.57247
+[340]	validation_0-rmse:1145.07644
+[341]	validation_0-rmse:1144.92760
+[342]	validation_0-rmse:1144.59835
+[343]	validation_0-rmse:1144.69185
+[344]	validation_0-rmse:1144.29262
+[345]	validation_0-rmse:1144.38449
+[346]	validation_0-rmse:1143.87074
+[347]	validation_0-rmse:1144.02396
+[348]	validation_0-rmse:1144.02288
+[349]	validation_0-rmse:1143.50160
+[350]	validation_0-rmse:1143.13517
+[351]	validation_0-rmse:1142.39955
+[352]	validation_0-rmse:1141.79768
+[353]	validation_0-rmse:1141.08280
+[354]	validation_0-rmse:1140.89706
+[355]	validation_0-rmse:1140.28431
+[356]	validation_0-rmse:1139.81804
+[357]	validation_0-rmse:1139.80851
+[358]	validation_0-rmse:1139.79183
+[359]	validation_0-rmse:1139.60031
+[360]	validation_0-rmse:1138.91864
+[361]	validation_0-rmse:1138.51065
+[362]	validation_0-rmse:1138.25144
+[363]	validation_0-rmse:1138.13559
+[364]	validation_0-rmse:1137.95171
+[365]	validation_0-rmse:1137.79368
+[366]	validation_0-rmse:1137.66023
+[367]	validation_0-rmse:1137.43517
+[368]	validation_0-rmse:1137.33730
+[369]	validation_0-rmse:1136.95168
+[370]	validation_0-rmse:1136.80239
+[371]	validation_0-rmse:1136.57876
+[372]	validation_0-rmse:1136.44468
+[373]	validation_0-rmse:1136.40091
+[374]	validation_0-rmse:1135.71378
+[375]	validation_0-rmse:1135.56630
+[376]	validation_0-rmse:1135.45912
+[377]	validation_0-rmse:1135.04670
+[378]	validation_0-rmse:1134.97697
+[379]	validation_0-rmse:1134.68727
+[380]	validation_0-rmse:1134.74260
+[381]	validation_0-rmse:1134.71164
+[382]	validation_0-rmse:1134.36725
+[383]	validation_0-rmse:1134.15975
+[384]	validation_0-rmse:1134.42556
+[385]	validation_0-rmse:1134.03216
+[386]	validation_0-rmse:1133.50984
+[387]	validation_0-rmse:1133.54314
+[388]	validation_0-rmse:1133.11290
+[389]	validation_0-rmse:1133.00937
+[390]	validation_0-rmse:1132.35916
+[391]	validation_0-rmse:1132.02658
+[392]	validation_0-rmse:1131.72392
+[393]	validation_0-rmse:1131.18816
+[394]	validation_0-rmse:1131.17616
+[395]	validation_0-rmse:1130.73911
+[396]	validation_0-rmse:1130.56758
+[397]	validation_0-rmse:1130.36716
+[398]	validation_0-rmse:1129.97110
+[399]	validation_0-rmse:1129.80443
+[400]	validation_0-rmse:1129.49990
+[401]	validation_0-rmse:1129.24634
+[402]	validation_0-rmse:1129.21502
+[403]	validation_0-rmse:1128.76751
+[404]	validation_0-rmse:1128.80214
+[405]	validation_0-rmse:1128.61635
+[406]	validation_0-rmse:1128.25782
+[407]	validation_0-rmse:1128.53554
+[408]	validation_0-rmse:1128.59482
+[409]	validation_0-rmse:1128.56435
+[410]	validation_0-rmse:1128.04992
+[411]	validation_0-rmse:1128.03341
+[412]	validation_0-rmse:1127.90269
+[413]	validation_0-rmse:1127.92715
+[414]	validation_0-rmse:1127.58244
+[415]	validation_0-rmse:1127.46465
+[416]	validation_0-rmse:1127.52972
+[417]	validation_0-rmse:1127.20501
+[418]	validation_0-rmse:1126.95800
+[419]	validation_0-rmse:1127.04982
+[420]	validation_0-rmse:1126.81003
+[421]	validation_0-rmse:1126.78122
+[422]	validation_0-rmse:1126.92700
+[423]	validation_0-rmse:1126.59284
+[424]	validation_0-rmse:1125.95827
+[425]	validation_0-rmse:1125.88636
+[426]	validation_0-rmse:1125.66330
+[427]	validation_0-rmse:1125.55978
+[428]	validation_0-rmse:1125.62648
+[429]	validation_0-rmse:1125.19971
+[430]	validation_0-rmse:1124.89744
+[431]	validation_0-rmse:1124.96431
+[432]	validation_0-rmse:1125.21140
+[433]	validation_0-rmse:1125.16505
+[434]	validation_0-rmse:1125.09752
+[435]	validation_0-rmse:1125.08702
+[436]	validation_0-rmse:1125.06070
+[437]	validation_0-rmse:1125.10386
+[438]	validation_0-rmse:1124.89678
+[439]	validation_0-rmse:1124.92777
+[440]	validation_0-rmse:1124.91702
+[441]	validation_0-rmse:1124.95660
+[442]	validation_0-rmse:1124.80337
+[443]	validation_0-rmse:1124.75115
+[444]	validation_0-rmse:1124.58176
+[445]	validation_0-rmse:1124.53028
+[446]	validation_0-rmse:1124.64661
+[447]	validation_0-rmse:1124.58463
+[448]	validation_0-rmse:1124.56660
+[449]	validation_0-rmse:1124.02340
+[450]	validation_0-rmse:1124.19258
+[451]	validation_0-rmse:1123.80150
+[452]	validation_0-rmse:1123.59031
+[453]	validation_0-rmse:1123.61651
+[454]	validation_0-rmse:1123.47612
+[455]	validation_0-rmse:1123.35016
+[456]	validation_0-rmse:1123.08011
+[457]	validation_0-rmse:1122.78910
+[458]	validation_0-rmse:1122.78562
+[459]	validation_0-rmse:1122.62391
+[460]	validation_0-rmse:1122.65792
+[461]	validation_0-rmse:1122.73850
+[462]	validation_0-rmse:1122.17270
+[463]	validation_0-rmse:1122.03162
+[464]	validation_0-rmse:1122.04656
+[465]	validation_0-rmse:1121.97407
+[466]	validation_0-rmse:1122.15746
+[467]	validation_0-rmse:1122.17727
+[468]	validation_0-rmse:1122.35857
+[469]	validation_0-rmse:1122.41057
+[470]	validation_0-rmse:1122.35428
+[471]	validation_0-rmse:1122.40708
+[472]	validation_0-rmse:1122.11868
+[473]	validation_0-rmse:1121.93303
+[474]	validation_0-rmse:1121.95403
+[475]	validation_0-rmse:1121.64167
+[476]	validation_0-rmse:1121.86911
+[477]	validation_0-rmse:1121.86411
+[478]	validation_0-rmse:1122.05956
+[479]	validation_0-rmse:1121.73273
+[480]	validation_0-rmse:1121.51205
+[481]	validation_0-rmse:1121.46496
+[482]	validation_0-rmse:1121.32559
+[483]	validation_0-rmse:1121.08736
+[484]	validation_0-rmse:1121.20420
+[485]	validation_0-rmse:1121.21280
+[486]	validation_0-rmse:1120.94815
+[487]	validation_0-rmse:1120.92224
+[488]	validation_0-rmse:1120.43912
+[489]	validation_0-rmse:1120.25680
+[490]	validation_0-rmse:1119.88712
+[491]	validation_0-rmse:1119.80514
+[492]	validation_0-rmse:1119.88728
+[493]	validation_0-rmse:1119.46537
+[494]	validation_0-rmse:1119.46213
+[495]	validation_0-rmse:1119.52176
+[496]	validation_0-rmse:1119.59777
+[497]	validation_0-rmse:1119.32817
+[498]	validation_0-rmse:1119.07898
+[499]	validation_0-rmse:1119.03683
+[500]	validation_0-rmse:1118.90272
+[501]	validation_0-rmse:1119.01359
+[502]	validation_0-rmse:1119.05893
+[503]	validation_0-rmse:1118.90783
+[504]	validation_0-rmse:1118.84445
+[505]	validation_0-rmse:1118.59551
+[506]	validation_0-rmse:1118.80510
+[507]	validation_0-rmse:1118.62844
+[508]	validation_0-rmse:1118.55080
+[509]	validation_0-rmse:1118.63382
+[510]	validation_0-rmse:1118.58015
+[511]	validation_0-rmse:1118.40880
+[512]	validation_0-rmse:1118.08601
+[513]	validation_0-rmse:1118.27158
+[514]	validation_0-rmse:1118.21685
+[515]	validation_0-rmse:1118.13914
+[516]	validation_0-rmse:1118.13422
+[517]	validation_0-rmse:1118.16038
+[518]	validation_0-rmse:1117.88100
+[519]	validation_0-rmse:1117.75868
+[520]	validation_0-rmse:1117.93825
+[521]	validation_0-rmse:1117.79961
+[522]	validation_0-rmse:1117.55493
+[523]	validation_0-rmse:1117.08042
+[524]	validation_0-rmse:1117.05799
+[525]	validation_0-rmse:1117.12275
+[526]	validation_0-rmse:1117.11828
+[527]	validation_0-rmse:1117.07144
+[528]	validation_0-rmse:1117.09914
+[529]	validation_0-rmse:1117.36969
+[530]	validation_0-rmse:1117.20929
+[531]	validation_0-rmse:1116.93844
+[532]	validation_0-rmse:1116.96612
+[533]	validation_0-rmse:1116.85054
+[534]	validation_0-rmse:1116.79568
+[535]	validation_0-rmse:1116.64741
+[536]	validation_0-rmse:1116.60629
+[537]	validation_0-rmse:1116.70872
+[538]	validation_0-rmse:1116.61101
+[539]	validation_0-rmse:1116.53518
+[540]	validation_0-rmse:1116.46251
+[541]	validation_0-rmse:1116.29425
+[542]	validation_0-rmse:1116.44856
+[543]	validation_0-rmse:1116.31125
+[544]	validation_0-rmse:1116.36541
+[545]	validation_0-rmse:1116.41973
+[546]	validation_0-rmse:1116.30815
+[547]	validation_0-rmse:1116.23036
+[548]	validation_0-rmse:1116.08731
+[549]	validation_0-rmse:1115.95346
+[550]	validation_0-rmse:1115.91055
+[551]	validation_0-rmse:1115.89523
+[552]	validation_0-rmse:1115.67199
+[553]	validation_0-rmse:1115.71030
+[554]	validation_0-rmse:1115.74046
+[555]	validation_0-rmse:1115.69937
+[556]	validation_0-rmse:1115.61786
+[557]	validation_0-rmse:1115.53725
+[558]	validation_0-rmse:1115.36477
+[559]	validation_0-rmse:1115.26072
+[560]	validation_0-rmse:1115.05242
+[561]	validation_0-rmse:1115.01323
+[562]	validation_0-rmse:1114.65693
+[563]	validation_0-rmse:1114.78873
+[564]	validation_0-rmse:1114.62605
+[565]	validation_0-rmse:1114.62810
+[566]	validation_0-rmse:1114.46689
+[567]	validation_0-rmse:1114.60836
+[568]	validation_0-rmse:1114.22214
+[569]	validation_0-rmse:1114.17829
+[570]	validation_0-rmse:1114.33351
+[571]	validation_0-rmse:1114.31490
+[572]	validation_0-rmse:1114.00883
+[573]	validation_0-rmse:1114.04785
+[574]	validation_0-rmse:1113.97293
+[575]	validation_0-rmse:1114.00057
+[576]	validation_0-rmse:1113.79150
+[577]	validation_0-rmse:1113.46878
+[578]	validation_0-rmse:1113.68427
+[579]	validation_0-rmse:1113.85595
+[580]	validation_0-rmse:1113.74675
+[581]	validation_0-rmse:1113.53301
+[582]	validation_0-rmse:1113.56397
+[583]	validation_0-rmse:1113.54016
+[584]	validation_0-rmse:1113.43246
+[585]	validation_0-rmse:1113.30245
+[586]	validation_0-rmse:1113.35780
+[587]	validation_0-rmse:1113.24699
+[588]	validation_0-rmse:1113.17870
+[589]	validation_0-rmse:1113.08464
+[590]	validation_0-rmse:1113.11829
+[591]	validation_0-rmse:1113.14720
+[592]	validation_0-rmse:1113.09006
+[593]	validation_0-rmse:1113.30033
+[594]	validation_0-rmse:1113.07500
+[595]	validation_0-rmse:1112.86938
+[596]	validation_0-rmse:1112.59023
+[597]	validation_0-rmse:1112.37339
+[598]	validation_0-rmse:1112.31066
+[599]	validation_0-rmse:1112.50263
+Test R² score: 0.9402
+Model saved to /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/models/energy_demand_xgb_v1.joblib
+Evaluating model performance...
+RMSE: 1112.31 MWh
+MAE: 710.37 MWh
+R²: 0.9402
+Loading price forecasts for 2025-2029...
+Successfully loaded price forecasts: 1826 rows
+Generating future demand predictions for 2025-2029...
+Progress: 100/1826 days processed
+Progress: 200/1826 days processed
+Progress: 300/1826 days processed
+Progress: 400/1826 days processed
+Progress: 500/1826 days processed
+Progress: 600/1826 days processed
+Progress: 700/1826 days processed
+Progress: 800/1826 days processed
+Progress: 900/1826 days processed
+Progress: 1000/1826 days processed
+Progress: 1100/1826 days processed
+Progress: 1200/1826 days processed
+Progress: 1300/1826 days processed
+Progress: 1400/1826 days processed
+Progress: 1500/1826 days processed
+Progress: 1600/1826 days processed
+Progress: 1700/1826 days processed
+Progress: 1800/1826 days processed
+Progress: 1826/1826 days processed
+Used 'price_eur_mwh' as the price column
+Future demand predictions saved to /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/final/Italy/energy_demand2025_2029.csv
+Analyzing correlations between price and demand...
+Historical correlation between price and demand: 0.1250
+Future correlation between price and demand: 0.0395
+Generating full demand history and predictions plot...
+Comprehensive demand plot saved to /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/outputs/images/demand_full_history_and_predictions.png
+Energy Demand Forecasting Model Training completed successfully!
+Hyperparameters saved to: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/models/demand_model_hyperparams.joblib
+
+For reproducible results:
+- The same hyperparameters will be used in future runs
+- To re-optimize hyperparameters, use: python 05_train_demand_model.py --reoptimize
+- All random seeds are fixed for consistent predictions
+
+
+Script completed successfully with return code: 0
+
+================================================================================
+Running: 06_process_res_generation_data.py
+Description: Processing renewable energy source (RES) generation data. Prepares solar, wind, and hydro generation data for analysis.
+
+================================================================================
+
+Starting RES generation data processing...
+Processing /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/raw/res_generation/Italy/RES_generation2015.csv...
+Saved processed file: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/processed/Italy/res_generation2015_p.csv
+Processing /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/raw/res_generation/Italy/RES_generation2016.csv...
+Saved processed file: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/processed/Italy/res_generation2016_p.csv
+Processing /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/raw/res_generation/Italy/RES_generation2017.csv...
+Saved processed file: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/processed/Italy/res_generation2017_p.csv
+Processing /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/raw/res_generation/Italy/RES_generation2018.csv...
+Saved processed file: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/processed/Italy/res_generation2018_p.csv
+Processing /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/raw/res_generation/Italy/RES_generation2019.csv...
+Saved processed file: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/processed/Italy/res_generation2019_p.csv
+Processing /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/raw/res_generation/Italy/RES_generation2020.csv...
+Saved processed file: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/processed/Italy/res_generation2020_p.csv
+Processing /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/raw/res_generation/Italy/RES_generation2021.csv...
+Saved processed file: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/processed/Italy/res_generation2021_p.csv
+Processing /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/raw/res_generation/Italy/RES_generation2022.csv...
+Saved processed file: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/processed/Italy/res_generation2022_p.csv
+Processing /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/raw/res_generation/Italy/RES_generation2023.csv...
+Saved processed file: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/processed/Italy/res_generation2023_p.csv
+Processing /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/raw/res_generation/Italy/RES_generation2024.csv...
+Saved processed file: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/processed/Italy/res_generation2024_p.csv
+Saved concatenated RES generation data: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/final/Italy/res_generation2015_2024.csv
+Saved merged RES-price data to: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/final/Italy/res_generation2015_2024_merged.csv (Columns: ['date', 'total_res_mw', 'solar_mw', 'wind_mw', 'hydro_mw', 'biomass_mw', 'geothermal_mw', 'is_outlier', 'year', 'month', 'day', 'price_eur_mwh'])
+Generating statistics and plots...
+
+Basic Statistics for Total RES Generation:
+----------------------------------------
+count     3653.000000
+mean     10135.069299
+std       2417.412436
+min          0.000000
+25%       8410.083333
+50%      10086.166667
+75%      11833.250000
+max      19165.708333
+Name: total_res_mw, dtype: float64
+
+Yearly averages:
+      total_res_mw     solar_mw  ...  biomass_mw  geothermal_mw
+year                             ...                           
+2015   9253.023904  2096.282530  ...  279.972037     659.030758
+2016   9167.963725  2024.234490  ...  276.981976     666.292728
+2017   9064.505068  2254.863292  ...  344.106662     660.823050
+2018  10141.324041  2031.788365  ...  398.736904     651.349301
+2019  10544.871685  2178.356493  ...  583.984260     649.238142
+2020  10712.352413  2322.628775  ...  652.138975     643.222814
+2021  10667.337100  2299.432137  ...  691.684954     631.074256
+2022   9127.102740  2565.562689  ...  633.821945     621.505356
+2023  10612.811178  2759.997530  ...  484.907584     610.382164
+2024  12055.208482  3161.823461  ...  588.302689     546.533807
+
+[10 rows x 6 columns]
+
+Monthly averages (across all years):
+       total_res_mw     solar_mw      wind_mw     hydro_mw
+month                                                     
+1       8657.745833  1156.723253  2924.543280  3441.274059
+2       9097.438751  1686.311985  2899.723057  3358.478210
+3       9630.629301  2340.900000  2808.578763  3328.814785
+4      10584.963333  2979.424722  2296.289722  4200.899444
+5      12068.053763  3098.000403  1983.827957  5886.905511
+6      12877.011944  3407.675556  1607.518333  6750.711250
+7      12065.680242  3503.929704  1500.073925  5918.620027
+8      10847.781855  3322.274328  1459.837634  4907.023656
+9       9809.606667  2662.914306  1776.507778  4227.289306
+10      8766.410726  1956.916704  1853.445548  3837.110231
+11      8838.803889  1268.184167  2370.668056  4086.653472
+12      8336.979670  1019.599909  2730.492694  3492.957978
+Plots saved to /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/outputs/images
+RES generation data processing complete!
+
+--- Script STDERR ---
+/Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/scripts/06_process_res_generation_data.py:71: FutureWarning: Downcasting behavior in `replace` is deprecated and will be removed in a future version. To retain the old behavior, explicitly call `result.infer_objects(copy=False)`. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  df[col] = df[col].replace(['n/e', 'N/A'], np.nan)
+/Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/scripts/06_process_res_generation_data.py:71: FutureWarning: Downcasting behavior in `replace` is deprecated and will be removed in a future version. To retain the old behavior, explicitly call `result.infer_objects(copy=False)`. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  df[col] = df[col].replace(['n/e', 'N/A'], np.nan)
+/Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/scripts/06_process_res_generation_data.py:71: FutureWarning: Downcasting behavior in `replace` is deprecated and will be removed in a future version. To retain the old behavior, explicitly call `result.infer_objects(copy=False)`. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  df[col] = df[col].replace(['n/e', 'N/A'], np.nan)
+/Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/scripts/06_process_res_generation_data.py:71: FutureWarning: Downcasting behavior in `replace` is deprecated and will be removed in a future version. To retain the old behavior, explicitly call `result.infer_objects(copy=False)`. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  df[col] = df[col].replace(['n/e', 'N/A'], np.nan)
+/Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/scripts/06_process_res_generation_data.py:71: FutureWarning: Downcasting behavior in `replace` is deprecated and will be removed in a future version. To retain the old behavior, explicitly call `result.infer_objects(copy=False)`. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  df[col] = df[col].replace(['n/e', 'N/A'], np.nan)
+/Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/scripts/06_process_res_generation_data.py:71: FutureWarning: Downcasting behavior in `replace` is deprecated and will be removed in a future version. To retain the old behavior, explicitly call `result.infer_objects(copy=False)`. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  df[col] = df[col].replace(['n/e', 'N/A'], np.nan)
+/Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/scripts/06_process_res_generation_data.py:71: FutureWarning: Downcasting behavior in `replace` is deprecated and will be removed in a future version. To retain the old behavior, explicitly call `result.infer_objects(copy=False)`. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  df[col] = df[col].replace(['n/e', 'N/A'], np.nan)
+/Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/scripts/06_process_res_generation_data.py:71: FutureWarning: Downcasting behavior in `replace` is deprecated and will be removed in a future version. To retain the old behavior, explicitly call `result.infer_objects(copy=False)`. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  df[col] = df[col].replace(['n/e', 'N/A'], np.nan)
+/Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/scripts/06_process_res_generation_data.py:71: FutureWarning: Downcasting behavior in `replace` is deprecated and will be removed in a future version. To retain the old behavior, explicitly call `result.infer_objects(copy=False)`. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  df[col] = df[col].replace(['n/e', 'N/A'], np.nan)
+/Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/scripts/06_process_res_generation_data.py:71: FutureWarning: Downcasting behavior in `replace` is deprecated and will be removed in a future version. To retain the old behavior, explicitly call `result.infer_objects(copy=False)`. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  df[col] = df[col].replace(['n/e', 'N/A'], np.nan)
+
+---------------------
+
+Script completed successfully with return code: 0
+
+================================================================================
+Running: 07_eda_res.py
+Description: Exploratory data analysis of renewable energy generation. Examines patterns and potential for meeting energy demand.
+
+================================================================================
+
+Starting Exploratory Data Analysis for RES Generation...
+Loading RES generation data...
+Data loaded: 3653 rows, 12 columns
+
+Basic Statistics:
+       total_res_mw     solar_mw  ...          day  price_eur_mwh
+count   3653.000000  3653.000000  ...  3653.000000    3653.000000
+mean   10135.069299  2369.606529  ...    15.731454      96.647910
+std     2417.412436  1094.302837  ...     8.802064      90.098071
+min        0.000000     0.000000  ...     1.000000      10.659308
+25%     8410.083333  1424.166667  ...     8.000000      47.397251
+50%    10086.166667  2383.416667  ...    16.000000      60.367120
+75%    11833.250000  3187.625000  ...    23.000000     112.136641
+max    19165.708333  7183.416667  ...    31.000000     740.091314
+
+[8 rows x 10 columns]
+
+Missing Values:
+No missing values
+
+First few rows:
+            total_res_mw     solar_mw      wind_mw  ...  month  day  price_eur_mwh
+date                                                ...                           
+2015-01-01      0.000000     0.000000     0.000000  ...      1    1      45.472115
+2015-01-02   7786.625000  1257.333333  2150.625000  ...      1    2      56.988056
+2015-01-03   8563.208333  1085.541667  3378.458333  ...      1    3      50.532976
+2015-01-04   9120.958333  1147.958333  3919.250000  ...      1    4      45.106388
+2015-01-05   9848.583333  1381.458333  3941.291667  ...      1    5      53.368481
+
+[5 rows x 11 columns]
+
+Performing time series analysis...
+Performing seasonal decomposition...
+
+Stationarity Tests:
+ADF Test: p-value = 0.0003
+ADF Critical Values: {'1%': -3.4321522387754775, '5%': -2.862336328589075, '10%': -2.567193897993964}
+KPSS Test: p-value = 0.0100
+KPSS Critical Values: {'10%': 0.347, '5%': 0.463, '2.5%': 0.574, '1%': 0.739}
+
+Performing correlation analysis...
+
+Performing feature engineering...
+
+Preparing train/test split...
+Training data: 2557 rows (2016-01-01 00:00:00 to 2022-12-31 00:00:00)
+Testing data: 731 rows (2023-01-01 00:00:00 to 2024-12-31 00:00:00)
+
+EDA completed. Visualizations saved to: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/outputs/images
+Train/test data saved to: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/final/Italy
+
+
+Script completed successfully with return code: 0
+
+================================================================================
+Running: 08_train_res_model.py
+Description: Training forecasting models for renewable energy generation. Develops models to predict future RES output.
+
+================================================================================
+
+Starting RES Generation Forecasting Model Training...
+Loading processed RES generation data...
+Successfully loaded training data: 2557 rows
+Successfully loaded testing data: 731 rows
+Preparing features and target variables...
+Warning: Feature 'is_weekend' not found in training data. Will be removed from feature list.
+Attempting to use features: ['dayofweek', 'month', 'quarter', 'year', 'dayofyear', 'total_res_mw_lag1', 'total_res_mw_lag7', 'total_res_mw_lag30', 'total_res_mw_rolling_7d_mean', 'total_res_mw_rolling_30d_mean', 'total_res_mw_rolling_7d_std', 'total_res_mw_rolling_30d_std', 'price_eur_mwh']
+Features used: ['dayofweek', 'month', 'quarter', 'year', 'dayofyear', 'total_res_mw_lag1', 'total_res_mw_lag7', 'total_res_mw_lag30', 'total_res_mw_rolling_7d_mean', 'total_res_mw_rolling_30d_mean', 'total_res_mw_rolling_7d_std', 'total_res_mw_rolling_30d_std', 'price_eur_mwh']
+X_train shape: (2557, 13), y_train shape: (2557,)
+X_test shape: (731, 13), y_test shape: (731,)
+Hyperparameters loaded from: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/models/res_model_hyperparams.joblib
+Using saved hyperparameters. To re-optimize, use --reoptimize flag or delete:
+  /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/models/res_model_hyperparams.joblib
+Current hyperparameters:
+    n_estimators: 400
+    learning_rate: 0.011845437121383477
+    max_depth: 3
+    subsample: 0.6987127978522939
+    colsample_bytree: 0.9153798008325685
+    reg_alpha: 0.33293329607045274
+    reg_lambda: 0.02385275131085739
+    min_child_weight: 2
+    gamma: 0.6573021411194228
+    objective: reg:squarederror
+    eval_metric: rmse
+    random_state: 42
+    early_stopping_rounds: 50
+Training XGBoost model with cross-validation...
+Performing time series cross-validation...
+Fold RMSE: 1149.68, R²: 0.6787 (Train RMSE: 832.36, R²: 0.8473)
+Fold RMSE: 1130.47, R²: 0.7333 (Train RMSE: 889.23, R²: 0.8188)
+Fold RMSE: 1117.65, R²: 0.7124 (Train RMSE: 924.27, R²: 0.8271)
+Fold RMSE: 1126.10, R²: 0.6959 (Train RMSE: 958.23, R²: 0.8201)
+Fold RMSE: 1227.57, R²: 0.5472 (Train RMSE: 1045.70, R²: 0.7812)
+Cross-validation train-test plot saved to: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/outputs/images/res_cv_train_test.png
+Cross-validation average RMSE: 1150.29 ±40.04
+Cross-validation average R²: 0.6735 ±0.0657
+Training final model on full training data...
+[0]	validation_0-rmse:3011.02535
+[1]	validation_0-rmse:2988.82692
+[2]	validation_0-rmse:2965.04649
+[3]	validation_0-rmse:2941.74320
+[4]	validation_0-rmse:2919.45970
+[5]	validation_0-rmse:2896.83245
+[6]	validation_0-rmse:2875.76404
+[7]	validation_0-rmse:2854.02469
+[8]	validation_0-rmse:2832.26244
+[9]	validation_0-rmse:2810.44127
+[10]	validation_0-rmse:2789.54730
+[11]	validation_0-rmse:2768.36683
+[12]	validation_0-rmse:2747.89786
+[13]	validation_0-rmse:2727.32063
+[14]	validation_0-rmse:2707.35300
+[15]	validation_0-rmse:2687.78648
+[16]	validation_0-rmse:2670.27245
+[17]	validation_0-rmse:2651.90475
+[18]	validation_0-rmse:2633.87789
+[19]	validation_0-rmse:2616.31431
+[20]	validation_0-rmse:2598.43421
+[21]	validation_0-rmse:2581.93273
+[22]	validation_0-rmse:2563.15940
+[23]	validation_0-rmse:2550.41933
+[24]	validation_0-rmse:2535.13498
+[25]	validation_0-rmse:2518.12191
+[26]	validation_0-rmse:2501.25312
+[27]	validation_0-rmse:2485.01312
+[28]	validation_0-rmse:2468.21712
+[29]	validation_0-rmse:2451.37800
+[30]	validation_0-rmse:2435.80858
+[31]	validation_0-rmse:2420.87064
+[32]	validation_0-rmse:2407.12058
+[33]	validation_0-rmse:2392.70448
+[34]	validation_0-rmse:2377.14254
+[35]	validation_0-rmse:2360.18129
+[36]	validation_0-rmse:2346.08440
+[37]	validation_0-rmse:2332.12422
+[38]	validation_0-rmse:2318.95972
+[39]	validation_0-rmse:2306.23767
+[40]	validation_0-rmse:2292.35788
+[41]	validation_0-rmse:2280.03797
+[42]	validation_0-rmse:2268.08687
+[43]	validation_0-rmse:2256.11691
+[44]	validation_0-rmse:2242.94339
+[45]	validation_0-rmse:2233.90658
+[46]	validation_0-rmse:2221.57383
+[47]	validation_0-rmse:2209.63873
+[48]	validation_0-rmse:2198.14184
+[49]	validation_0-rmse:2186.80709
+[50]	validation_0-rmse:2175.71196
+[51]	validation_0-rmse:2164.32679
+[52]	validation_0-rmse:2152.92284
+[53]	validation_0-rmse:2142.79924
+[54]	validation_0-rmse:2132.53391
+[55]	validation_0-rmse:2121.46873
+[56]	validation_0-rmse:2110.59769
+[57]	validation_0-rmse:2101.34533
+[58]	validation_0-rmse:2092.32651
+[59]	validation_0-rmse:2081.81954
+[60]	validation_0-rmse:2072.45933
+[61]	validation_0-rmse:2062.13549
+[62]	validation_0-rmse:2053.17417
+[63]	validation_0-rmse:2043.54098
+[64]	validation_0-rmse:2032.51025
+[65]	validation_0-rmse:2023.78298
+[66]	validation_0-rmse:2015.52006
+[67]	validation_0-rmse:2006.99565
+[68]	validation_0-rmse:1998.02217
+[69]	validation_0-rmse:1990.91707
+[70]	validation_0-rmse:1981.45233
+[71]	validation_0-rmse:1972.41841
+[72]	validation_0-rmse:1964.24078
+[73]	validation_0-rmse:1956.48270
+[74]	validation_0-rmse:1946.33969
+[75]	validation_0-rmse:1939.08383
+[76]	validation_0-rmse:1933.07482
+[77]	validation_0-rmse:1926.49862
+[78]	validation_0-rmse:1918.56580
+[79]	validation_0-rmse:1911.80312
+[80]	validation_0-rmse:1906.09355
+[81]	validation_0-rmse:1897.47023
+[82]	validation_0-rmse:1890.43903
+[83]	validation_0-rmse:1883.98743
+[84]	validation_0-rmse:1877.48909
+[85]	validation_0-rmse:1871.29821
+[86]	validation_0-rmse:1862.25060
+[87]	validation_0-rmse:1856.00568
+[88]	validation_0-rmse:1850.36042
+[89]	validation_0-rmse:1843.42400
+[90]	validation_0-rmse:1836.83305
+[91]	validation_0-rmse:1831.59403
+[92]	validation_0-rmse:1825.31163
+[93]	validation_0-rmse:1819.37479
+[94]	validation_0-rmse:1812.80952
+[95]	validation_0-rmse:1807.08843
+[96]	validation_0-rmse:1799.23463
+[97]	validation_0-rmse:1791.35848
+[98]	validation_0-rmse:1785.18366
+[99]	validation_0-rmse:1779.01288
+[100]	validation_0-rmse:1773.46816
+[101]	validation_0-rmse:1768.50618
+[102]	validation_0-rmse:1764.06110
+[103]	validation_0-rmse:1760.19084
+[104]	validation_0-rmse:1755.30420
+[105]	validation_0-rmse:1750.29749
+[106]	validation_0-rmse:1745.04719
+[107]	validation_0-rmse:1739.30115
+[108]	validation_0-rmse:1733.30973
+[109]	validation_0-rmse:1729.65674
+[110]	validation_0-rmse:1725.88402
+[111]	validation_0-rmse:1722.20403
+[112]	validation_0-rmse:1717.53006
+[113]	validation_0-rmse:1713.23369
+[114]	validation_0-rmse:1708.70753
+[115]	validation_0-rmse:1704.62316
+[116]	validation_0-rmse:1700.63578
+[117]	validation_0-rmse:1697.56363
+[118]	validation_0-rmse:1693.56668
+[119]	validation_0-rmse:1689.88347
+[120]	validation_0-rmse:1686.09714
+[121]	validation_0-rmse:1682.84928
+[122]	validation_0-rmse:1677.44958
+[123]	validation_0-rmse:1672.21306
+[124]	validation_0-rmse:1668.65623
+[125]	validation_0-rmse:1663.10489
+[126]	validation_0-rmse:1659.97041
+[127]	validation_0-rmse:1657.00523
+[128]	validation_0-rmse:1653.26315
+[129]	validation_0-rmse:1649.91998
+[130]	validation_0-rmse:1647.16374
+[131]	validation_0-rmse:1642.58454
+[132]	validation_0-rmse:1640.05253
+[133]	validation_0-rmse:1635.74654
+[134]	validation_0-rmse:1632.44348
+[135]	validation_0-rmse:1630.32530
+[136]	validation_0-rmse:1627.28735
+[137]	validation_0-rmse:1625.09557
+[138]	validation_0-rmse:1622.56689
+[139]	validation_0-rmse:1620.64384
+[140]	validation_0-rmse:1618.33175
+[141]	validation_0-rmse:1614.25391
+[142]	validation_0-rmse:1611.67954
+[143]	validation_0-rmse:1608.43800
+[144]	validation_0-rmse:1605.49134
+[145]	validation_0-rmse:1603.18673
+[146]	validation_0-rmse:1599.95975
+[147]	validation_0-rmse:1597.73764
+[148]	validation_0-rmse:1595.39301
+[149]	validation_0-rmse:1592.12452
+[150]	validation_0-rmse:1590.38275
+[151]	validation_0-rmse:1588.38045
+[152]	validation_0-rmse:1586.61026
+[153]	validation_0-rmse:1584.45786
+[154]	validation_0-rmse:1582.23526
+[155]	validation_0-rmse:1580.20119
+[156]	validation_0-rmse:1578.84977
+[157]	validation_0-rmse:1576.77665
+[158]	validation_0-rmse:1574.98378
+[159]	validation_0-rmse:1572.96210
+[160]	validation_0-rmse:1571.37818
+[161]	validation_0-rmse:1569.64986
+[162]	validation_0-rmse:1567.75510
+[163]	validation_0-rmse:1564.89989
+[164]	validation_0-rmse:1562.28537
+[165]	validation_0-rmse:1560.84784
+[166]	validation_0-rmse:1558.94603
+[167]	validation_0-rmse:1557.26162
+[168]	validation_0-rmse:1555.75309
+[169]	validation_0-rmse:1554.40766
+[170]	validation_0-rmse:1553.27709
+[171]	validation_0-rmse:1551.85499
+[172]	validation_0-rmse:1550.87619
+[173]	validation_0-rmse:1549.45586
+[174]	validation_0-rmse:1548.29537
+[175]	validation_0-rmse:1546.92711
+[176]	validation_0-rmse:1544.45236
+[177]	validation_0-rmse:1543.02369
+[178]	validation_0-rmse:1541.82430
+[179]	validation_0-rmse:1540.85013
+[180]	validation_0-rmse:1540.09878
+[181]	validation_0-rmse:1539.09419
+[182]	validation_0-rmse:1538.26050
+[183]	validation_0-rmse:1535.84777
+[184]	validation_0-rmse:1533.96179
+[185]	validation_0-rmse:1533.22145
+[186]	validation_0-rmse:1531.01726
+[187]	validation_0-rmse:1528.75664
+[188]	validation_0-rmse:1527.75376
+[189]	validation_0-rmse:1526.72869
+[190]	validation_0-rmse:1525.48795
+[191]	validation_0-rmse:1524.50577
+[192]	validation_0-rmse:1523.64035
+[193]	validation_0-rmse:1522.60927
+[194]	validation_0-rmse:1521.57062
+[195]	validation_0-rmse:1520.86914
+[196]	validation_0-rmse:1520.00770
+[197]	validation_0-rmse:1517.90024
+[198]	validation_0-rmse:1517.38491
+[199]	validation_0-rmse:1516.43196
+[200]	validation_0-rmse:1514.74602
+[201]	validation_0-rmse:1514.17978
+[202]	validation_0-rmse:1513.60126
+[203]	validation_0-rmse:1513.02605
+[204]	validation_0-rmse:1511.79974
+[205]	validation_0-rmse:1510.95095
+[206]	validation_0-rmse:1510.18153
+[207]	validation_0-rmse:1509.57109
+[208]	validation_0-rmse:1508.95058
+[209]	validation_0-rmse:1508.49900
+[210]	validation_0-rmse:1507.48581
+[211]	validation_0-rmse:1507.35507
+[212]	validation_0-rmse:1506.58506
+[213]	validation_0-rmse:1505.06996
+[214]	validation_0-rmse:1504.45387
+[215]	validation_0-rmse:1502.83840
+[216]	validation_0-rmse:1501.05369
+[217]	validation_0-rmse:1500.56977
+[218]	validation_0-rmse:1500.39206
+[219]	validation_0-rmse:1499.84500
+[220]	validation_0-rmse:1499.37636
+[221]	validation_0-rmse:1499.04528
+[222]	validation_0-rmse:1498.39735
+[223]	validation_0-rmse:1498.03177
+[224]	validation_0-rmse:1496.55213
+[225]	validation_0-rmse:1495.51050
+[226]	validation_0-rmse:1495.60588
+[227]	validation_0-rmse:1495.14436
+[228]	validation_0-rmse:1494.05325
+[229]	validation_0-rmse:1493.58604
+[230]	validation_0-rmse:1493.36733
+[231]	validation_0-rmse:1491.40420
+[232]	validation_0-rmse:1491.19944
+[233]	validation_0-rmse:1491.00558
+[234]	validation_0-rmse:1489.51402
+[235]	validation_0-rmse:1489.19448
+[236]	validation_0-rmse:1487.32928
+[237]	validation_0-rmse:1486.90048
+[238]	validation_0-rmse:1486.42658
+[239]	validation_0-rmse:1485.68529
+[240]	validation_0-rmse:1485.11373
+[241]	validation_0-rmse:1484.62304
+[242]	validation_0-rmse:1483.86161
+[243]	validation_0-rmse:1483.67549
+[244]	validation_0-rmse:1480.46288
+[245]	validation_0-rmse:1480.23561
+[246]	validation_0-rmse:1480.26045
+[247]	validation_0-rmse:1479.31215
+[248]	validation_0-rmse:1478.87494
+[249]	validation_0-rmse:1477.67486
+[250]	validation_0-rmse:1476.77303
+[251]	validation_0-rmse:1475.94481
+[252]	validation_0-rmse:1474.80038
+[253]	validation_0-rmse:1474.60608
+[254]	validation_0-rmse:1474.23247
+[255]	validation_0-rmse:1474.13749
+[256]	validation_0-rmse:1473.97612
+[257]	validation_0-rmse:1473.49519
+[258]	validation_0-rmse:1473.32371
+[259]	validation_0-rmse:1473.14624
+[260]	validation_0-rmse:1472.57871
+[261]	validation_0-rmse:1472.25262
+[262]	validation_0-rmse:1471.94163
+[263]	validation_0-rmse:1471.43367
+[264]	validation_0-rmse:1470.65973
+[265]	validation_0-rmse:1470.28248
+[266]	validation_0-rmse:1470.16522
+[267]	validation_0-rmse:1469.99944
+[268]	validation_0-rmse:1469.57600
+[269]	validation_0-rmse:1468.75331
+[270]	validation_0-rmse:1468.71559
+[271]	validation_0-rmse:1468.41924
+[272]	validation_0-rmse:1468.12309
+[273]	validation_0-rmse:1467.66955
+[274]	validation_0-rmse:1467.17979
+[275]	validation_0-rmse:1466.57930
+[276]	validation_0-rmse:1466.19098
+[277]	validation_0-rmse:1466.10783
+[278]	validation_0-rmse:1466.11954
+[279]	validation_0-rmse:1466.23308
+[280]	validation_0-rmse:1465.98730
+[281]	validation_0-rmse:1465.81285
+[282]	validation_0-rmse:1465.58958
+[283]	validation_0-rmse:1465.27305
+[284]	validation_0-rmse:1465.36138
+[285]	validation_0-rmse:1465.29686
+[286]	validation_0-rmse:1465.34318
+[287]	validation_0-rmse:1465.32719
+[288]	validation_0-rmse:1465.27869
+[289]	validation_0-rmse:1467.08607
+[290]	validation_0-rmse:1467.10772
+[291]	validation_0-rmse:1466.54864
+[292]	validation_0-rmse:1466.71148
+[293]	validation_0-rmse:1466.71504
+[294]	validation_0-rmse:1466.47772
+[295]	validation_0-rmse:1466.44734
+[296]	validation_0-rmse:1466.47510
+[297]	validation_0-rmse:1466.25942
+[298]	validation_0-rmse:1466.19712
+[299]	validation_0-rmse:1466.03037
+[300]	validation_0-rmse:1465.61123
+[301]	validation_0-rmse:1465.12274
+[302]	validation_0-rmse:1464.90113
+[303]	validation_0-rmse:1464.70143
+[304]	validation_0-rmse:1464.51929
+[305]	validation_0-rmse:1464.49827
+[306]	validation_0-rmse:1464.28949
+[307]	validation_0-rmse:1464.14132
+[308]	validation_0-rmse:1464.02871
+[309]	validation_0-rmse:1464.09783
+[310]	validation_0-rmse:1464.03536
+[311]	validation_0-rmse:1462.94896
+[312]	validation_0-rmse:1462.83832
+[313]	validation_0-rmse:1462.69638
+[314]	validation_0-rmse:1462.60926
+[315]	validation_0-rmse:1462.50422
+[316]	validation_0-rmse:1462.46363
+[317]	validation_0-rmse:1462.36208
+[318]	validation_0-rmse:1461.30104
+[319]	validation_0-rmse:1461.45746
+[320]	validation_0-rmse:1461.35108
+[321]	validation_0-rmse:1461.10488
+[322]	validation_0-rmse:1460.75029
+[323]	validation_0-rmse:1460.56301
+[324]	validation_0-rmse:1461.12354
+[325]	validation_0-rmse:1460.95061
+[326]	validation_0-rmse:1460.61380
+[327]	validation_0-rmse:1460.38978
+[328]	validation_0-rmse:1460.61266
+[329]	validation_0-rmse:1460.49340
+[330]	validation_0-rmse:1460.31642
+[331]	validation_0-rmse:1459.68710
+[332]	validation_0-rmse:1459.38778
+[333]	validation_0-rmse:1458.96863
+[334]	validation_0-rmse:1458.94035
+[335]	validation_0-rmse:1458.70073
+[336]	validation_0-rmse:1457.82553
+[337]	validation_0-rmse:1457.80100
+[338]	validation_0-rmse:1458.04596
+[339]	validation_0-rmse:1457.85908
+[340]	validation_0-rmse:1457.85145
+[341]	validation_0-rmse:1457.57828
+[342]	validation_0-rmse:1457.56168
+[343]	validation_0-rmse:1457.58081
+[344]	validation_0-rmse:1457.54838
+[345]	validation_0-rmse:1457.66137
+[346]	validation_0-rmse:1457.72106
+[347]	validation_0-rmse:1457.53596
+[348]	validation_0-rmse:1457.59492
+[349]	validation_0-rmse:1457.19774
+[350]	validation_0-rmse:1457.27121
+[351]	validation_0-rmse:1457.53187
+[352]	validation_0-rmse:1457.59398
+[353]	validation_0-rmse:1457.55404
+[354]	validation_0-rmse:1457.54237
+[355]	validation_0-rmse:1457.60382
+[356]	validation_0-rmse:1457.60105
+[357]	validation_0-rmse:1457.48996
+[358]	validation_0-rmse:1457.52966
+[359]	validation_0-rmse:1457.52533
+[360]	validation_0-rmse:1457.45405
+[361]	validation_0-rmse:1456.35227
+[362]	validation_0-rmse:1456.18170
+[363]	validation_0-rmse:1456.00471
+[364]	validation_0-rmse:1455.74606
+[365]	validation_0-rmse:1455.91613
+[366]	validation_0-rmse:1455.30216
+[367]	validation_0-rmse:1455.31499
+[368]	validation_0-rmse:1455.42074
+[369]	validation_0-rmse:1455.15843
+[370]	validation_0-rmse:1455.04427
+[371]	validation_0-rmse:1454.89529
+[372]	validation_0-rmse:1454.80124
+[373]	validation_0-rmse:1454.73229
+[374]	validation_0-rmse:1454.62432
+[375]	validation_0-rmse:1454.56023
+[376]	validation_0-rmse:1454.64659
+[377]	validation_0-rmse:1454.60993
+[378]	validation_0-rmse:1454.44029
+[379]	validation_0-rmse:1454.14877
+[380]	validation_0-rmse:1454.07884
+[381]	validation_0-rmse:1453.60049
+[382]	validation_0-rmse:1453.85953
+[383]	validation_0-rmse:1453.54194
+[384]	validation_0-rmse:1452.97574
+[385]	validation_0-rmse:1452.88683
+[386]	validation_0-rmse:1453.03192
+[387]	validation_0-rmse:1452.94978
+[388]	validation_0-rmse:1453.49334
+[389]	validation_0-rmse:1453.53025
+[390]	validation_0-rmse:1453.53540
+[391]	validation_0-rmse:1453.58828
+[392]	validation_0-rmse:1453.62186
+[393]	validation_0-rmse:1453.28848
+[394]	validation_0-rmse:1453.34991
+[395]	validation_0-rmse:1453.22761
+[396]	validation_0-rmse:1452.99755
+[397]	validation_0-rmse:1452.92090
+[398]	validation_0-rmse:1452.82555
+[399]	validation_0-rmse:1452.64579
+Test R² score: 0.7067
+Model saved to /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/models/energy_res_xgb_v1.joblib
+Evaluating model performance...
+RMSE: 1452.65 MW
+MAE: 1140.35 MW
+R²: 0.7067
+Loading price forecasts for 2025-2029...
+Successfully loaded price forecasts: 1826 rows
+Generating future RES generation predictions for 2025-2029...
+Progress: 100/1826 days processed
+Progress: 200/1826 days processed
+Progress: 300/1826 days processed
+Progress: 400/1826 days processed
+Progress: 500/1826 days processed
+Progress: 600/1826 days processed
+Progress: 700/1826 days processed
+Progress: 800/1826 days processed
+Progress: 900/1826 days processed
+Progress: 1000/1826 days processed
+Progress: 1100/1826 days processed
+Progress: 1200/1826 days processed
+Progress: 1300/1826 days processed
+Progress: 1400/1826 days processed
+Progress: 1500/1826 days processed
+Progress: 1600/1826 days processed
+Progress: 1700/1826 days processed
+Progress: 1800/1826 days processed
+Progress: 1826/1826 days processed
+Future RES generation predictions saved to /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/final/Italy/energy_res2025_2029.csv
+Analyzing correlations between price and RES generation...
+Historical correlation between price and RES generation: -0.1416
+Future correlation between price and RES generation: -0.8177
+Generating full RES generation history and predictions plot...
+Comprehensive RES generation plot saved to /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/outputs/images/res_full_history_and_predictions.png
+RES Generation Forecasting Model Training completed successfully!
+Hyperparameters saved to: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/models/res_model_hyperparams.joblib
+
+For reproducible results:
+- The same hyperparameters will be used in future runs
+- To re-optimize hyperparameters, use: python 08_train_res_model.py --reoptimize
+- All random seeds are fixed for consistent predictions
+
+
+Script completed successfully with return code: 0
+
+================================================================================
+Running: 09_demand_supply_analysis.py
+Description: Comprehensive analysis of energy demand vs. renewable supply. Calculates coverage percentages and identifies potential surplus/deficit periods.
+
+================================================================================
+
+Loading forecasted data files...
+Successfully loaded price data: 1826 rows
+Successfully loaded demand data: 1826 rows
+Successfully loaded RES generation data: 1826 rows
+Preprocessing and merging data...
+Price data columns: ['Date', 'price_eur_mwh']
+Demand data columns: ['Date', 'Demand', 'price_eur_mwh']
+RES data columns: ['Date', 'total_res_mw', 'price_eur_mwh']
+Using columns: Price='price_eur_mwh', Demand='Demand', RES='total_res_mw'
+Successfully merged data: 1826 rows
+Date range: 2025-01-01 00:00:00 to 2029-12-31 00:00:00
+Saved merged data to: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/final/Italy/price_demand_generation_prediction.csv
+Calculating monthly aggregations...
+Generated monthly aggregations: 60 rows
+Calculating yearly aggregations...
+Generated yearly aggregations: 5 rows
+Creating visualizations...
+All visualizations saved to /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/outputs/images
+Saving results to CSV files...
+Monthly analysis saved to /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/final/Italy/monthly_analysis.csv
+Yearly analysis saved to /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/final/Italy/yearly_analysis.csv
+Plotting forecasted unscaled combined demand vs RES...
+Plotting historical unscaled combined demand vs RES...
+Plotting historical + forecasted unscaled combined demand vs RES...
+Plotting unscaled combined RES, demand, and price (historical + forecasted)...
+Plotting yearly energy surplus/deficit for forecasted period...
+Plotting yearly energy surplus/deficit for historical period...
+Analysis completed successfully!
+
+
+Script completed successfully with return code: 0
+
+================================================================================
+Running: final_analysis.py
+Description: Performing final analysis and generating comprehensive reports.
+
+================================================================================
+
+Loading historical data...
+Loading forecasted data...
+
+========================================================================================================================
+YEARLY ENERGY ANALYSIS TABLE (2015-2029)
+========================================================================================================================
+ Year  Data_Type  Avg_Price_EUR_MWh  Avg_Demand_MW  Avg_RES_Generation_MW  Total_Demand_TWh  Total_RES_Generation_TWh  Pct_Demand_Covered
+ 2015 Historical              52.31       32936.00                9253.00            288.52                     81.06               28.10
+ 2016 Historical              42.78       32248.00                9168.00            282.49                     80.31               28.40
+ 2017 Historical              53.95       33270.00                9065.00            291.45                     79.41               27.20
+ 2018 Historical              61.31       33933.00               10141.00            297.26                     88.84               29.90
+ 2019 Historical              52.33       33579.00               10545.00            294.15                     92.37               31.40
+ 2020 Historical              38.92       31102.00               10712.00            272.45                     93.84               34.40
+ 2021 Historical             125.45       33024.00               10667.00            289.29                     93.45               32.30
+ 2022 Historical             303.97       32678.00                9127.00            286.26                     79.95               27.90
+ 2023 Historical             127.24       31532.00               10613.00            276.22                     92.97               33.70
+ 2024 Historical             108.52       31774.00               12055.00            278.34                    105.60               37.90
+ 2025 Forecasted             104.05       32919.00               12255.00            288.37                    107.35               37.20
+ 2026 Forecasted             185.87       32374.00               11272.00            283.60                     98.75               34.80
+ 2027 Forecasted             342.66       32349.00                9989.00            283.38                     87.51               30.90
+ 2028 Forecasted             467.50       32289.00                9934.00            282.85                     87.02               30.80
+ 2029 Forecasted             467.63       32253.00                9935.00            282.54                     87.03               30.80
+
+------------------------------------------------------------------------------------------------------------------------
+SUMMARY STATISTICS
+------------------------------------------------------------------------------------------------------------------------
+
+Historical Period (2015-2024):
+  Average Price: 96.68 EUR/MWh
+  Average Demand: 285.64 TWh/year
+  Average RES Generation: 88.78 TWh/year
+  Average RES Coverage: 31.1%
+
+Forecasted Period (2025-2029):
+  Average Price: 313.54 EUR/MWh
+  Average Demand: 284.15 TWh/year
+  Average RES Generation: 93.53 TWh/year
+  Average RES Coverage: 32.9%
+
+Growth from Historical to Forecasted Period:
+  Price: +224.3%
+  Demand: -0.5%
+  RES Generation: +5.4%
+  RES Coverage: +1.8 percentage points
+
+Table saved to: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/final/Italy/yearly_analysis_2015_2029.csv
+
+Generating visualization...
+Plot saved to: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/outputs/images/final_energy_analysis.png
+
+--- Script STDERR ---
+/Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/scripts/final_analysis.py:121: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  final_table['Avg_Price_EUR_MWh'] = final_table['Avg_Price_EUR_MWh'].round(2)
+/Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/scripts/final_analysis.py:122: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  final_table['Avg_Demand_MW'] = final_table['Avg_Demand_MW'].round(0)
+/Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/scripts/final_analysis.py:123: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  final_table['Avg_RES_Generation_MW'] = final_table['Avg_RES_Generation_MW'].round(0)
+/Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/scripts/final_analysis.py:124: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  final_table['Total_Demand_TWh'] = final_table['Total_Demand_TWh'].round(2)
+/Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/scripts/final_analysis.py:125: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  final_table['Total_RES_Generation_TWh'] = final_table['Total_RES_Generation_TWh'].round(2)
+/Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/scripts/final_analysis.py:126: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  final_table['Pct_Demand_Covered'] = final_table['Pct_Demand_Covered'].round(1)
+
+---------------------
+
+Script completed successfully with return code: 0
+
+================================================================================
+PIPELINE EXECUTION SUMMARY
+Successfully ran 11 out of 11 scripts.
+================================================================================
+

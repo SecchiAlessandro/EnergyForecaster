@@ -5,24 +5,21 @@ import sys
 
 def create_directories(base_dir):
     """
-    Create the directory structure for the energy market forecasting project
+    Create the essential directory structure for the energy market forecasting project
     """
     directories = [
-        # Raw data directories
-        os.path.join(base_dir, "data", "raw", "energy_price", "Italy"),
-        os.path.join(base_dir, "data", "raw", "energy_demand", "Italy"),
-        os.path.join(base_dir, "data", "raw", "res_generation", "Italy"),
-        
-        # Processed data directories
-        os.path.join(base_dir, "data", "processed", "Italy"),
-        
-        # Final data directories
-        os.path.join(base_dir, "data", "final", "Italy"),
-        
-        # Scripts, notebooks, models and outputs directories
+        # Main directories
         os.path.join(base_dir, "scripts"),
-        os.path.join(base_dir, "notebooks"),
+        os.path.join(base_dir, "data"),
         os.path.join(base_dir, "models"),
+        os.path.join(base_dir, "outputs"),
+        
+        # Data subdirectories
+        os.path.join(base_dir, "data", "raw"),
+        os.path.join(base_dir, "data", "processed"),
+        os.path.join(base_dir, "data", "final"),
+        
+        # Outputs subdirectories
         os.path.join(base_dir, "outputs", "images")
     ]
     
@@ -45,21 +42,18 @@ def validate_directories(base_dir):
     Validate that all required directories exist
     """
     directories = [
-        # Raw data directories
-        os.path.join(base_dir, "data", "raw", "energy_price", "Italy"),
-        os.path.join(base_dir, "data", "raw", "energy_demand", "Italy"),
-        os.path.join(base_dir, "data", "raw", "res_generation", "Italy"),
-        
-        # Processed data directories
-        os.path.join(base_dir, "data", "processed", "Italy"),
-        
-        # Final data directories
-        os.path.join(base_dir, "data", "final", "Italy"),
-        
-        # Scripts, notebooks, models and outputs directories
+        # Main directories
         os.path.join(base_dir, "scripts"),
-        os.path.join(base_dir, "notebooks"),
+        os.path.join(base_dir, "data"),
         os.path.join(base_dir, "models"),
+        os.path.join(base_dir, "outputs"),
+        
+        # Data subdirectories
+        os.path.join(base_dir, "data", "raw"),
+        os.path.join(base_dir, "data", "processed"),
+        os.path.join(base_dir, "data", "final"),
+        
+        # Outputs subdirectories
         os.path.join(base_dir, "outputs", "images")
     ]
     
@@ -81,12 +75,8 @@ def validate_directories(base_dir):
     return all_valid
 
 if __name__ == "__main__":
-    # Get project base directory (default: current directory)
+    # Get current directory as base directory
     base_dir = os.getcwd()
-    
-    # Check if "project" is already in the path, if not add it
-    if os.path.basename(base_dir) != "project":
-        base_dir = os.path.join(base_dir, "project")
     
     # Command line arguments
     if len(sys.argv) > 1:
