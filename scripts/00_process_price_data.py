@@ -101,8 +101,8 @@ def clean_data(df):
     Q3 = df_clean['price_eur_mwh'].quantile(0.75)
     IQR = Q3 - Q1
     
-    lower_bound = Q1 - 1.5 * IQR
-    upper_bound = Q3 + 1.5 * IQR
+    lower_bound = Q1 - 3.5 * IQR
+    upper_bound = Q3 + 3.5 * IQR
     
     # Count outliers
     outliers = df_clean[(df_clean['price_eur_mwh'] < lower_bound) | 

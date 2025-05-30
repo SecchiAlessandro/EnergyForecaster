@@ -18,8 +18,8 @@ Loading data from /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/raw/
 Successfully loaded data with 3653 rows and 2 columns.
 Cleaning and preprocessing data...
 Found 0 missing values.
-Found 364 outliers using IQR method.
-Sample weights assigned: {1.0: 3289, 0.1: 364}
+Found 128 outliers using IQR method.
+Sample weights assigned: {1.0: 3525, 0.1: 128}
 Creating final dataset...
 
 Basic Statistics:
@@ -96,8 +96,8 @@ Data preview:
 
 [5 rows x 9 columns]
 Engineering time-based features...
-Sample weight distribution: {1.0: 3289, 0.1: 364}
-Outlier distribution: {False: 3289, True: 364}
+Sample weight distribution: {1.0: 3525, 0.1: 128}
+Outlier distribution: {False: 3525, True: 128}
 
 Engineered features preview:
         Date  price_eur_mwh  ...  price_rolling_7d_mean  price_rolling_30d_mean
@@ -159,7 +159,7 @@ Loading processed price data...
 Successfully loaded training data: 3043 rows
 Successfully loaded testing data: 580 rows
 Preparing features and target variables...
-Using sample weights for training. Weight distribution: {1.0: 2679, 0.1: 364}
+Using sample weights for training. Weight distribution: {1.0: 2915, 0.1: 128}
 Features used: ['day_of_week', 'month', 'quarter', 'year', 'day_of_year', 'is_weekend', 'price_lag1', 'price_lag7', 'price_lag30', 'price_rolling_7d_mean', 'price_rolling_30d_mean']
 X_train shape: (3043, 11), y_train shape: (3043,)
 X_test shape: (580, 11), y_test shape: (580,)
@@ -187,32 +187,32 @@ Fold RMSE: 6.45, R²: 0.6833 (Train RMSE: 0.59, R²: 0.9973)
 Fold RMSE: 6.35, R²: 0.6775 (Train RMSE: 0.57, R²: 0.9975)
 Fold RMSE: 5.66, R²: 0.7756 (Train RMSE: 0.60, R²: 0.9978)
 Fold RMSE: 76.50, R²: -0.0197 (Train RMSE: 0.62, R²: 0.9979)
-Fold RMSE: 97.26, R²: 0.4294 (Train RMSE: 4.27, R²: 0.9899)
+Fold RMSE: 88.40, R²: 0.5286 (Train RMSE: 1.82, R²: 0.9981)
 Cross-validation train-test plot saved to: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/outputs/images/price_cv_train_test.png
-Cross-validation average RMSE: 38.44 ±40.09
-Cross-validation average R²: 0.5092 ±0.2883
+Cross-validation average RMSE: 36.67 ±37.57
+Cross-validation average R²: 0.5291 ±0.2856
 Training final model on full training data with sample weights...
-Test R² score: 0.5642
+Test R² score: 0.6632
 Model saved to /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/models/energy_price_xgb_v1.joblib
 Evaluating model performance...
-RMSE: 13.21 €/MWh
-MAE: 9.87 €/MWh
-R²: 0.5642
+RMSE: 11.62 €/MWh
+MAE: 8.72 €/MWh
+R²: 0.6632
 Generating future predictions for 2025-2029...
 Future predictions saved to /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/final/Italy/energy_price2025_2029.csv (only Date and price_eur_mwh columns)
 Successfully loaded training data from /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/final/Italy/price_train_data.csv for the plot.
 Comprehensive plot saved to /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/outputs/images/price_full_history_and_predictions.png
 Analyzing sample weights and outlier distribution...
 Total training samples: 3043
-Normal samples (weight=1.0): 2679 (88.0%)
-Outlier samples (weight=0.1): 364 (12.0%)
+Normal samples (weight=1.0): 2915 (95.8%)
+Outlier samples (weight=0.1): 128 (4.2%)
 
 Price statistics:
-Normal samples - Mean: 63.59, Std: 36.59
-Outlier samples - Mean: 320.00, Std: 111.97
+Normal samples - Mean: 78.66, Std: 62.36
+Outlier samples - Mean: 449.52, Std: 89.15
 
 Model training and prediction complete!
-Model performance: RMSE=13.21, MAE=9.87, R²=0.5642
+Model performance: RMSE=11.62, MAE=8.72, R²=0.6632
 Model saved to: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/models/energy_price_xgb_v1.joblib
 Hyperparameters saved to: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/models/price_model_hyperparams.joblib
 Predictions saved to: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/final/Italy/energy_price2025_2029.csv
@@ -360,7 +360,7 @@ Performing seasonal decomposition...
 
 Stationarity Tests:
 ADF Test: p-value = 0.0000
-ADF Critical Values: {'1%': -3.43215622115055, '5%': -2.862338087688428, '10%': -2.5671948344809046}
+ADF Critical Values: {'1%': np.float64(-3.43215622115055), '5%': np.float64(-2.862338087688428), '10%': np.float64(-2.5671948344809046)}
 KPSS Test: p-value = 0.0555
 KPSS Critical Values: {'10%': 0.347, '5%': 0.463, '2.5%': 0.574, '1%': 0.739}
 
@@ -1054,7 +1054,7 @@ Used 'price_eur_mwh' as the price column
 Future demand predictions saved to /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/final/Italy/energy_demand2025_2029.csv
 Analyzing correlations between price and demand...
 Historical correlation between price and demand: 0.1250
-Future correlation between price and demand: 0.0395
+Future correlation between price and demand: 0.0925
 Generating full demand history and predictions plot...
 Comprehensive demand plot saved to /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/outputs/images/demand_full_history_and_predictions.png
 Energy Demand Forecasting Model Training completed successfully!
@@ -1213,7 +1213,7 @@ Performing seasonal decomposition...
 
 Stationarity Tests:
 ADF Test: p-value = 0.0003
-ADF Critical Values: {'1%': -3.4321522387754775, '5%': -2.862336328589075, '10%': -2.567193897993964}
+ADF Critical Values: {'1%': np.float64(-3.4321522387754775), '5%': np.float64(-2.862336328589075), '10%': np.float64(-2.567193897993964)}
 KPSS Test: p-value = 0.0100
 KPSS Critical Values: {'10%': 0.347, '5%': 0.463, '2.5%': 0.574, '1%': 0.739}
 
@@ -1706,7 +1706,7 @@ Progress: 1826/1826 days processed
 Future RES generation predictions saved to /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/final/Italy/energy_res2025_2029.csv
 Analyzing correlations between price and RES generation...
 Historical correlation between price and RES generation: -0.1416
-Future correlation between price and RES generation: -0.8177
+Future correlation between price and RES generation: -0.3455
 Generating full RES generation history and predictions plot...
 Comprehensive RES generation plot saved to /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/outputs/images/res_full_history_and_predictions.png
 RES Generation Forecasting Model Training completed successfully!
@@ -1781,11 +1781,11 @@ YEARLY ENERGY ANALYSIS TABLE (2015-2029)
  2022 Historical             303.97       32678.00                9127.00            286.26                     79.95               27.90
  2023 Historical             127.24       31532.00               10613.00            276.22                     92.97               33.70
  2024 Historical             108.52       31774.00               12055.00            278.34                    105.60               37.90
- 2025 Forecasted             104.05       32919.00               12255.00            288.37                    107.35               37.20
- 2026 Forecasted             185.87       32374.00               11272.00            283.60                     98.75               34.80
- 2027 Forecasted             342.66       32349.00                9989.00            283.38                     87.51               30.90
- 2028 Forecasted             467.50       32289.00                9934.00            282.85                     87.02               30.80
- 2029 Forecasted             467.63       32253.00                9935.00            282.54                     87.03               30.80
+ 2025 Forecasted             137.85       32911.00               12260.00            288.30                    107.40               37.30
+ 2026 Forecasted             155.17       32370.00               11321.00            283.56                     99.17               35.00
+ 2027 Forecasted             157.96       32362.00               11321.00            283.49                     99.17               35.00
+ 2028 Forecasted             159.42       32331.00               11319.00            283.22                     99.16               35.00
+ 2029 Forecasted             154.68       32336.00               11321.00            283.26                     99.17               35.00
 
 ------------------------------------------------------------------------------------------------------------------------
 SUMMARY STATISTICS
@@ -1798,61 +1798,22 @@ Historical Period (2015-2024):
   Average RES Coverage: 31.1%
 
 Forecasted Period (2025-2029):
-  Average Price: 313.54 EUR/MWh
-  Average Demand: 284.15 TWh/year
-  Average RES Generation: 93.53 TWh/year
-  Average RES Coverage: 32.9%
+  Average Price: 153.02 EUR/MWh
+  Average Demand: 284.37 TWh/year
+  Average RES Generation: 100.81 TWh/year
+  Average RES Coverage: 35.5%
 
 Growth from Historical to Forecasted Period:
-  Price: +224.3%
-  Demand: -0.5%
-  RES Generation: +5.4%
-  RES Coverage: +1.8 percentage points
+  Price: +58.3%
+  Demand: -0.4%
+  RES Generation: +13.6%
+  RES Coverage: +4.3 percentage points
 
 Table saved to: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/data/final/Italy/yearly_analysis_2015_2029.csv
 
 Generating visualization...
 Plot saved to: /Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/outputs/images/final_energy_analysis.png
 
---- Script STDERR ---
-/Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/scripts/final_analysis.py:121: SettingWithCopyWarning: 
-A value is trying to be set on a copy of a slice from a DataFrame.
-Try using .loc[row_indexer,col_indexer] = value instead
-
-See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
-  final_table['Avg_Price_EUR_MWh'] = final_table['Avg_Price_EUR_MWh'].round(2)
-/Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/scripts/final_analysis.py:122: SettingWithCopyWarning: 
-A value is trying to be set on a copy of a slice from a DataFrame.
-Try using .loc[row_indexer,col_indexer] = value instead
-
-See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
-  final_table['Avg_Demand_MW'] = final_table['Avg_Demand_MW'].round(0)
-/Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/scripts/final_analysis.py:123: SettingWithCopyWarning: 
-A value is trying to be set on a copy of a slice from a DataFrame.
-Try using .loc[row_indexer,col_indexer] = value instead
-
-See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
-  final_table['Avg_RES_Generation_MW'] = final_table['Avg_RES_Generation_MW'].round(0)
-/Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/scripts/final_analysis.py:124: SettingWithCopyWarning: 
-A value is trying to be set on a copy of a slice from a DataFrame.
-Try using .loc[row_indexer,col_indexer] = value instead
-
-See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
-  final_table['Total_Demand_TWh'] = final_table['Total_Demand_TWh'].round(2)
-/Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/scripts/final_analysis.py:125: SettingWithCopyWarning: 
-A value is trying to be set on a copy of a slice from a DataFrame.
-Try using .loc[row_indexer,col_indexer] = value instead
-
-See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
-  final_table['Total_RES_Generation_TWh'] = final_table['Total_RES_Generation_TWh'].round(2)
-/Users/aless/Desktop/AI_ML_Projects/EnergyForecaster/scripts/final_analysis.py:126: SettingWithCopyWarning: 
-A value is trying to be set on a copy of a slice from a DataFrame.
-Try using .loc[row_indexer,col_indexer] = value instead
-
-See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
-  final_table['Pct_Demand_Covered'] = final_table['Pct_Demand_Covered'].round(1)
-
----------------------
 
 Script completed successfully with return code: 0
 

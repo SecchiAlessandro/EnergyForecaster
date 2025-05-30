@@ -105,7 +105,7 @@ def calculate_yearly_stats():
     full_yearly['Total_Demand_TWh'] = full_yearly['Total_Demand_MWh'] / 1e6
     full_yearly['Total_RES_Generation_TWh'] = full_yearly['Total_RES_Generation_MWh'] / 1e6
     
-    # Create the final table with selected columns
+    # Create the final table with selected columns (make a copy to avoid warnings)
     final_table = full_yearly[[
         'Year', 
         'Data_Type',
@@ -115,7 +115,7 @@ def calculate_yearly_stats():
         'Total_Demand_TWh', 
         'Total_RES_Generation_TWh',
         'Pct_Demand_Covered'
-    ]]
+    ]].copy()
     
     # Round values for better readability
     final_table['Avg_Price_EUR_MWh'] = final_table['Avg_Price_EUR_MWh'].round(2)
