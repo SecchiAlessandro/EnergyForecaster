@@ -6,11 +6,14 @@ from 2015 to 2029, combining historical and forecasted data.
 
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 from pathlib import Path
 
 # Define paths
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / 'data/final/Italy'
+IMAGES_DIR = BASE_DIR / 'outputs/images'
 
 def load_historical_data():
     """Load historical data (2015-2024)"""
@@ -124,6 +127,100 @@ def calculate_yearly_stats():
     
     return final_table
 
+def plot_yearly_analysis(yearly_table):
+    """Create a multi-panel plot showing yearly energy analysis from 2015-2029"""
+    
+    # Set up the plot style
+    plt.style.use('seaborn-v0_8-whitegrid')
+    fig, axes = plt.subplots(4, 1, figsize=(12, 16))
+    fig.suptitle('Yearly Energy Analysis (2015-2029)', fontsize=16, fontweight='bold', y=0.98)
+    
+    # Define colors for historical and forecasted data
+    hist_color = '#1f77b4'  # Blue
+    forecast_color = '#ff7f0e'  # Orange
+    
+    # Split data into historical and forecasted
+    hist_data = yearly_table[yearly_table['Data_Type'] == 'Historical']
+    forecast_data = yearly_table[yearly_table['Data_Type'] == 'Forecasted']
+    
+    # Plot 1: Average Energy Price (EUR/MWh)
+    ax1 = axes[0]
+    ax1.plot(hist_data['Year'], hist_data['Avg_Price_EUR_MWh'], 
+             color=hist_color, marker='o', linewidth=2, markersize=5, label='Historical')
+    ax1.plot(forecast_data['Year'], forecast_data['Avg_Price_EUR_MWh'], 
+             color=forecast_color, marker='s', linewidth=2, markersize=5, label='Forecasted')
+    ax1.set_title('Average Energy Price (EUR/MWh)', fontweight='bold')
+    ax1.set_ylabel('EUR/MWh')
+    ax1.legend()
+    ax1.grid(True, alpha=0.3)
+    
+    # Plot 2: Total Demand and RES Generation (TWh)
+    ax2 = axes[1]
+    ax2.plot(hist_data['Year'], hist_data['Total_Demand_TWh'], 
+             color=hist_color, marker='o', linewidth=2, markersize=5, label='Total Demand (Historical)')
+    ax2.plot(forecast_data['Year'], forecast_data['Total_Demand_TWh'], 
+             color=hist_color, marker='s', linewidth=2, markersize=5, linestyle='--', label='Total Demand (Forecasted)')
+    ax2.plot(hist_data['Year'], hist_data['Total_RES_Generation_TWh'], 
+             color=forecast_color, marker='o', linewidth=2, markersize=5, label='Total RES Generation (Historical)')
+    ax2.plot(forecast_data['Year'], forecast_data['Total_RES_Generation_TWh'], 
+             color=forecast_color, marker='s', linewidth=2, markersize=5, linestyle='--', label='Total RES Generation (Forecasted)')
+    ax2.set_title('Total Demand and RES Generation (TWh)', fontweight='bold')
+    ax2.set_ylabel('TWh')
+    ax2.legend()
+    ax2.grid(True, alpha=0.3)
+    
+    # Plot 3: RES Coverage Percentage
+    ax3 = axes[2]
+    ax3.plot(hist_data['Year'], hist_data['Pct_Demand_Covered'], 
+             color='#2ca02c', marker='o', linewidth=2, markersize=5, label='Historical')
+    ax3.plot(forecast_data['Year'], forecast_data['Pct_Demand_Covered'], 
+             color='#d62728', marker='s', linewidth=2, markersize=5, label='Forecasted')
+    ax3.set_title('RES Coverage Percentage', fontweight='bold')
+    ax3.set_ylabel('Coverage (%)')
+    ax3.legend()
+    ax3.grid(True, alpha=0.3)
+    
+    # Plot 4: Combined overview with dual y-axis
+    ax4 = axes[3]
+    
+    # Price on left y-axis
+    line1 = ax4.plot(yearly_table['Year'], yearly_table['Avg_Price_EUR_MWh'], 
+                     color='red', marker='o', linewidth=2, markersize=4, label='Avg Price (EUR/MWh)')
+    ax4.set_ylabel('Price (EUR/MWh)', color='red')
+    ax4.tick_params(axis='y', labelcolor='red')
+    
+    # RES coverage on right y-axis
+    ax4_twin = ax4.twinx()
+    line2 = ax4_twin.plot(yearly_table['Year'], yearly_table['Pct_Demand_Covered'], 
+                          color='green', marker='s', linewidth=2, markersize=4, label='RES Coverage (%)')
+    ax4_twin.set_ylabel('RES Coverage (%)', color='green')
+    ax4_twin.tick_params(axis='y', labelcolor='green')
+    
+    ax4.set_title('Price vs RES Coverage Overview', fontweight='bold')
+    ax4.set_xlabel('Year')
+    ax4.grid(True, alpha=0.3)
+    
+    # Add combined legend
+    lines1, labels1 = ax4.get_legend_handles_labels()
+    lines2, labels2 = ax4_twin.get_legend_handles_labels()
+    ax4.legend(lines1 + lines2, labels1 + labels2, loc='upper left')
+    
+    # Add vertical line to separate historical from forecasted data
+    for ax in axes:
+        ax.axvline(x=2024.5, color='gray', linestyle=':', alpha=0.7, linewidth=1)
+        ax.text(2024.5, ax.get_ylim()[1] * 0.95, 'Historical | Forecasted', 
+                rotation=90, ha='right', va='top', fontsize=8, alpha=0.7)
+    
+    # Adjust layout and save
+    plt.tight_layout()
+    
+    # Save the plot
+    output_path = IMAGES_DIR / 'final_energy_analysis.png'
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    print(f"Plot saved to: {output_path}")
+    plt.show()
+    plt.close()
+
 def display_table():
     """Generate and display the yearly analysis table"""
     
@@ -182,3 +279,7 @@ def display_table():
 if __name__ == "__main__":
     # Generate and display the table
     table = display_table()
+    
+    # Create and display the plot
+    print("\nGenerating visualization...")
+    plot_yearly_analysis(table)
