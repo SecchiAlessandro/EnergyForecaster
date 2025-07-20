@@ -26,7 +26,7 @@ This project processes historical Italian energy market data (2015-2024) to buil
 2. Create and activate a virtual environment:
    ```bash
    python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   source venv/bin/activate  # On Windows: venv\bin\activate
    ```
 
 3. Install dependencies:
@@ -41,7 +41,7 @@ Run the complete pipeline:
 python main.py
 ```
 
-This executes all 10 scripts (00-09) for data processing, analysis, modeling, and forecasting.
+This executes all 10 scripts (00-09) for data processing, analysis, modeling, and forecasting. The results are saved in main_result.txt 
 
 ## Data Sources
 
